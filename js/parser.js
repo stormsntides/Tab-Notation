@@ -1,7 +1,26 @@
 function toTabString() {
-	return this.reduce(function(acc, st){
-		return acc + '<div class="string"><div class="tab"><span class="note-name">' + st.note + (st.note.length < 2 ? " " : "") + '</span>' + st.tabs.join("") + '</div></div>';
-	}, "");
+	// return this.reduce(function(acc, st){
+	// 	return acc + '<div class="string"><div class="tab"><span class="note-name">' + st.note + (st.note.length < 2 ? " " : "") + '</span>' + st.tabs.join("") + '</div></div>';
+	// }, "");
+
+	let notes = '<div class="notes">' + this.reduce(function(acc, st){
+		return acc + '<div class="string"><div class="note-name">' + st.note + (st.note.length < 2 ? ' ' : '') + '</div></div>';
+	}, "") + '</div>';
+
+	let msrArr = [];
+	this.forEach(function(st){
+		let msr = st.tabs.join("").split("|");
+		msr.forEach(function(m, i){
+			if(msrArr.length <= i){
+				msrArr.push('<div class="string"><div class="tab">' + m + '</div></div>');
+			} else {
+				msrArr[i] += '<div class="string"><div class="tab">' + m + '</div></div>';
+			}
+		});
+	});
+	let measures = '<div class="measure">' + msrArr.join('</div><div class="measure">') + '</div>';
+
+	return '<div class="tab-container">' + notes + measures + '</div>';
 }
 
 function parseTabs(text){
