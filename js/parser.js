@@ -1,24 +1,38 @@
 function toTabString() {
-	// return this.reduce(function(acc, st){
-	// 	return acc + '<div class="string"><div class="tab"><span class="note-name">' + st.note + (st.note.length < 2 ? " " : "") + '</span>' + st.tabs.join("") + '</div></div>';
-	// }, "");
-
-	let notes = '<div class="notes">' + this.reduce(function(acc, st){
+	// combine tuning into node string by reducing each note in the tuning
+	let notes = '<div class="notes">' + this.reduce(function(acc, st) {
 		return acc + '<div class="string"><div class="note-name">' + st.note + (st.note.length < 2 ? ' ' : '') + '</div></div>';
 	}, "") + '</div>';
 
+	// array for storing measures
 	let msrArr = [];
-	this.forEach(function(st){
-		let msr = st.tabs.join("").split("|");
-		msr.forEach(function(m, i){
-			if(msrArr.length <= i){
-				msrArr.push('<div class="string"><div class="tab">' + m + '</div></div>');
-			} else {
-				msrArr[i] += '<div class="string"><div class="tab">' + m + '</div></div>';
-			}
+	// loop through each string, keeping track of the index (important)
+	this.forEach(function(st, si){
+		// join the string's tabs together and split at the "|" char; the "|" is a measure separator
+		st.tabs.join("").split("|").forEach(function(m, mi){
+			// through simple math magic, sort the strings into the appropriate measure
+			let pos = si + mi + (si * mi);
+			msrArr.splice(pos, 0, m);
 		});
 	});
-	let measures = '<div class="measure">' + msrArr.join('</div><div class="measure">') + '</div>';
+
+	let measures = "";
+	// get the total number of measures which is the length of the sorted tabs array divided by the number of strings
+	let totalMeasures = msrArr.length / this.length;
+	// loop through each measure in the tab
+	for(let msr = 0; msr < totalMeasures; msr++){
+		// slice from the current measure times the number of strings to the beginning of the next measure and join
+		let tmpMsr = msrArr.slice(msr * this.length, msr * this.length + this.length);
+		// check to see if measure has tab content
+		if(/\S/.test(tmpMsr.join(""))){
+			// combine tabs into measure by reducing each tab
+			let newMsr = tmpMsr.reduce(function(acc, m){
+				return acc + '<div class="string"><div class="tab">' + m + '</div></div>';
+			}, "");
+			// group tabs into measure
+			measures += '<div class="measure">' + newMsr + '</div>';
+		}
+	}
 
 	return '<div class="tab-container">' + notes + measures + '</div>';
 }

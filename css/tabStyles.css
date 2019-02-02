@@ -9,9 +9,33 @@
 	box-sizing: border-box;
 }
 
+.tab-container {
+	display: flex;
+	flex-direction: row;
+}
+
+.notes, .measure {
+	margin: 1em 0;
+}
+
+.notes {
+	padding-right: 0.2em;
+	border-right: 1px solid black;
+}
+
+.measure {
+	border-left: 1px solid black;
+}
+
+.measure:last-of-type {
+	border-right: 1px solid black;
+}
+
 .string {
 	height: 1.3em;
 	border-top: 1px solid black;
+	position: relative;
+	top: 0.5em;
 	z-index: -2;
 }
 
@@ -57,18 +81,4 @@
 	transform: translate(-0.7em, 0);
 	z-index: -1;
 	background-color: white;
-}
-
-.bar {
-	display: inline;
-	min-height: 100%;
-	margin: none;
-	padding: none;
-	border: none;
-	border: 1px solid black;
-}
-
-.tab-container {
-	display: flex;
-	flex-direction: row;
 }
