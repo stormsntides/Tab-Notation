@@ -197,6 +197,9 @@ function tokenize(text) {
         if(/\[.*\]/.test(bufferString)) {
           result.push(new Token("Tab Info", bufferString));
           buffer = [];
+        } else if(/\{\d+\}/.test(bufferString)) {
+          result.push(new Token("Beat Length", bufferString));
+          buffer = [];
         } else if(/(?:[A-G][#b]*'*-)+[A-G][#b]*'*/.test(bufferString)) {
           result.push(new Token("Note Chord", bufferString.split("-")));
           buffer = [];

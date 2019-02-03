@@ -8,10 +8,7 @@ function textToTab(staff, text){
   let tabs = parseTabs(text);
 
   staff.innerHTML = "";
-  staff.innerHTML += tabs.toTabString();
-  // for(let t = 0; t < tabs.length; t++){
-  //   staff.innerHTML += tabs[t].toTabString();
-  // }
+  staff.innerHTML += tabs.getTabs();
 }
 
 function inputToTab(e){
