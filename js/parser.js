@@ -58,7 +58,8 @@ function parseTabs(text){
   let currentIndex = [];
 	let options = {
 		showBeats: false,
-		palmMute: false
+		palmMute: false,
+		beatLength: 1
 	};
   for(let z = 0; z < tokens.length; z++){
     let tkn = tokens[z];
@@ -112,7 +113,7 @@ function parseTabs(text){
 			case "Tab":
       case "Tab Chord":
 				addTabs(tkn);
-				addColumn(" ");
+				// addColumn(" ");
         break;
       case "Open Palm Mute":
         options.palmMute = true;
@@ -128,9 +129,13 @@ function parseTabs(text){
 					}
 				}
 				break;
+			case "Beat Length":
+				options.beatLength = tkn.value.replace(/\{|\}/g, "");
+				break;
 			case "Whitespace": break;
 			case "Bar Line":
-				addColumn(tkn.value + " ");
+				// addColumn(tkn.value + " ");
+				addColumn(tkn.value);
 				break;
       case "Multiply":
         let prevTkn = z - 1 >= 0 ? tokens[z - 1] : undefined;
@@ -141,7 +146,7 @@ function parseTabs(text){
           // repeat how many times specified in the multiply token
           for(let r = 0; r < repeat; r++){
 						addTabs(prevTkn);
-						addColumn(" ");
+						// addColumn(" ");
           }
         }
         break;
@@ -160,7 +165,7 @@ function parseTabs(text){
 	function addTabs(tabToken){
 		let tabs = tabToken.value;
 		let span = {
-			start: '<span class="modifier"' + (options.palmMute ? ' data-display-bottom="pm"' : '') + (tabToken.modifier ? ' data-display-left="' + tabToken.modifier + '"' : '') + '>',
+			start: '<span class="modifier" style="--beat-length: ' + options.beatLength + 'em"' + (options.palmMute ? ' data-display-bottom="pm"' : '') + (tabToken.modifier ? ' data-display-left="' + tabToken.modifier + '"' : '') + '>',
 			end: '</span>',
 			isModified: tabToken.modifier || options.palmMute
 		};
@@ -171,7 +176,8 @@ function parseTabs(text){
 			// maxT denotes the max value t can be when get token values
 			let maxT = t >= tabs.length ? tabs.length - 1 : t;
 			// maxT signals to write the last tab to be written on the remaining notes queued
-			let value = span.isModified ? span.start + tabs[maxT] + span.end : tabs[maxT];
+			// let value = span.isModified ? span.start + tabs[maxT] + span.end : tabs[maxT];
+			let value = span.start + tabs[maxT] + span.end;
 			tablature[tablature.length - 1][currentIndex[t]].tabs.push(value);
 			// check if largest number of digits in token value so far
 			numDigits = numDigits < tabs[maxT].length ? tabs[maxT].length : numDigits;
@@ -179,7 +185,8 @@ function parseTabs(text){
 		// fill remaining strings with correct spacing
 		for(let st = 0; st < tablature[tablature.length - 1].length; st++){
 			if(!currentIndex.includes(st)){
-				tablature[tablature.length - 1][st].tabs.push(" ".repeat(numDigits));
+				// tablature[tablature.length - 1][st].tabs.push(" ".repeat(numDigits));
+				tablature[tablature.length - 1][st].tabs.push('<span class="modifier" style="--beat-length: ' + options.beatLength + 'em">' + " ".repeat(numDigits) + '</span>');
 			}
 		}
 	}

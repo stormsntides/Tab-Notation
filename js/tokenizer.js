@@ -117,6 +117,7 @@ function tokenize(text) {
 
   let ignore = false;
   let tabInfo = false;
+  let beatLength = false;
 
   for(let i = 0; i < str.length; i++) {
     let char = str[i];
@@ -163,9 +164,11 @@ function tokenize(text) {
     } else if (!ignore && isOpenBeatLength(char)) {
       checkBuffer();
       buffer.push(char);
+      beatLength = true;
     } else if (!ignore && isCloseBeatLength(char)) {
       buffer.push(char);
       checkBuffer();
+      beatLength = false;
     } else if (!ignore && isOpenTabInfo(char)) {
       checkBuffer();
       buffer.push(char);
@@ -182,7 +185,7 @@ function tokenize(text) {
     } else if (isComment(char)) {
       checkBuffer(ignore);
       ignore = !ignore;
-    } else if(!ignore && tabInfo){
+    } else if(!ignore && (tabInfo || beatLength)){
       buffer.push(char);
     }
   }
@@ -197,7 +200,7 @@ function tokenize(text) {
         if(/\[.*\]/.test(bufferString)) {
           result.push(new Token("Tab Info", bufferString));
           buffer = [];
-        } else if(/\{\d+\}/.test(bufferString)) {
+        } else if(/\{\d+(?:\.\d+)*?\}/.test(bufferString)) {
           result.push(new Token("Beat Length", bufferString));
           buffer = [];
         } else if(/(?:[A-G][#b]*'*-)+[A-G][#b]*'*/.test(bufferString)) {
