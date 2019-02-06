@@ -34,7 +34,7 @@ function toTabString() {
 		if(/\S/.test(tmpMsr.join(""))){
 			// combine tabs into measure by reducing each tab
 			let newMsr = tmpMsr.reduce(function(acc, m){
-				return acc + '<div class="string"><div class="tab">' + m + '</div></div>';
+				return acc + '<div class="string"><div class="tab"> ' + m + '</div></div>';
 			}, "");
 			// group tabs into measure
 			measures += '<div class="measure">' + newMsr + '</div>';
@@ -113,7 +113,7 @@ function parseTabs(text){
 			case "Tab":
       case "Tab Chord":
 				addTabs(tkn);
-				// addColumn(" ");
+				addColumn(" ".repeat(options.beatLength));
         break;
       case "Open Palm Mute":
         options.palmMute = true;
@@ -134,7 +134,6 @@ function parseTabs(text){
 				break;
 			case "Whitespace": break;
 			case "Bar Line":
-				// addColumn(tkn.value + " ");
 				addColumn(tkn.value);
 				break;
       case "Multiply":
@@ -146,7 +145,7 @@ function parseTabs(text){
           // repeat how many times specified in the multiply token
           for(let r = 0; r < repeat; r++){
 						addTabs(prevTkn);
-						// addColumn(" ");
+						addColumn(" ".repeat(options.beatLength));
           }
         }
         break;
@@ -165,7 +164,7 @@ function parseTabs(text){
 	function addTabs(tabToken){
 		let tabs = tabToken.value;
 		let span = {
-			start: '<span class="modifier" style="--beat-length: ' + options.beatLength + 'em"' + (options.palmMute ? ' data-display-bottom="pm"' : '') + (tabToken.modifier ? ' data-display-left="' + tabToken.modifier + '"' : '') + '>',
+			start: '<span class="modifier"' + (options.palmMute ? ' data-display-bottom="pm"' : '') + (tabToken.modifier ? ' data-display-left="' + tabToken.modifier + '"' : '') + '>',
 			end: '</span>',
 			isModified: tabToken.modifier || options.palmMute
 		};
@@ -186,7 +185,7 @@ function parseTabs(text){
 		for(let st = 0; st < tablature[tablature.length - 1].length; st++){
 			if(!currentIndex.includes(st)){
 				// tablature[tablature.length - 1][st].tabs.push(" ".repeat(numDigits));
-				tablature[tablature.length - 1][st].tabs.push('<span class="modifier" style="--beat-length: ' + options.beatLength + 'em">' + " ".repeat(numDigits) + '</span>');
+				tablature[tablature.length - 1][st].tabs.push('<span class="modifier">' + " ".repeat(numDigits) + '</span>');
 			}
 		}
 	}

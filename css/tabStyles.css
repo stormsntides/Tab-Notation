@@ -63,12 +63,11 @@
 }
 
 .modifier {
-	padding: var(--beat-length);
 	display: inline;
 }
 
 .modifier[data-display-bottom]::after {
-	font-size: 10px;
+	font-size: 0.6em;
 	position: absolute;
 	content: attr(data-display-bottom);
 	transform: translate(-1em, 1.2em);
