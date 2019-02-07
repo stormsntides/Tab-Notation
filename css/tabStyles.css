@@ -1,53 +1,52 @@
-.staff {
+.tn-container {
 	display: flex;
+	white-space: pre;
 	flex-direction: column;
 	font-family: "Courier New", Courier, monospace !important;
 	padding: 1em 0;
 }
 
-.staff * {
+.tn-container * {
 	box-sizing: border-box;
 }
 
-.tab-container {
+.tn-staff {
 	display: flex;
 	flex-direction: row;
 }
 
-.notes, .measure {
+.tn-staff {
+	cursor: pointer;
+}
+
+.tn-notes, .tn-measure {
 	margin: 1em 0;
 }
 
-.notes {
+.tn-notes {
 	padding-right: 0.2em;
 	border-right: 1px solid black;
 }
 
-.measure {
+.tn-measure {
 	border-left: 1px solid black;
 }
 
-.measure:last-of-type {
+.tn-measure:last-of-type {
 	border-right: 1px solid black;
 }
 
-.string {
+.tn-string {
 	height: 1.3em;
 	border-top: 1px solid black;
 	position: relative;
 	top: 0.5em;
-	z-index: -2;
 }
 
-.note-name {
-	background-color: white;
-	margin-top: -0.5em;
-}
-
-.tab {
-	white-space: pre;
+.tn-string > * {
 	height: inherit;
-	margin-top: -0.5em;
+	position: relative;
+	bottom: 0.5em;
 	text-shadow: white 0 1px,
     white 0 2px,
 		white 0 3px,
@@ -62,23 +61,23 @@
 		white -3px 0;
 }
 
-.modifier {
-	display: inline;
+.tn-string > *:hover {
+	background-color: rgba(200, 200, 255, 1);
+	text-shadow: none;
+	border-radius: 25%;
 }
 
-.modifier[data-display-bottom]::after {
+[data-display-bottom]::after {
 	font-size: 0.6em;
 	position: absolute;
 	content: attr(data-display-bottom);
 	transform: translate(-1em, 1.2em);
-	z-index: -1;
 }
 
-.modifier[data-display-left]::before {
+[data-display-left]::before {
 	font-size: 0.8em;
 	position: absolute;
 	content: attr(data-display-left);
 	transform: translate(-0.7em, 0);
-	z-index: -1;
 	background-color: white;
 }

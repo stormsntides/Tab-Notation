@@ -7,8 +7,9 @@ function getTabs() {
 
 function toTabString() {
 	// combine tuning into node string by reducing each note in the tuning
-	let notes = '<div class="notes">' + this.reduce(function(acc, st) {
-		return acc + '<div class="string"><div class="note-name">' + st.note + (st.note.length < 2 ? ' ' : '') + '</div></div>';
+	let notes = '<div class="tn-notes">' + this.reduce(function(acc, st) {
+		// return acc + '<div class="tn-string"><div class="tn-note-name">' + st.note + (st.note.length < 2 ? ' ' : '') + '</div></div>';
+		return acc + '<div class="tn-string"><span>' + st.note + (st.note.length < 2 ? ' ' : '') + '</span></div>';
 	}, "") + '</div>';
 
 	// array for storing measures
@@ -34,14 +35,15 @@ function toTabString() {
 		if(/\S/.test(tmpMsr.join(""))){
 			// combine tabs into measure by reducing each tab
 			let newMsr = tmpMsr.reduce(function(acc, m){
-				return acc + '<div class="string"><div class="tab"> ' + m + '</div></div>';
+				// return acc + '<div class="tn-string"><div class="tn-tab"> ' + m + '</div></div>';
+				return acc + '<div class="tn-string"> ' + m + '</div>';
 			}, "");
 			// group tabs into measure
-			measures += '<div class="measure">' + newMsr + '</div>';
+			measures += '<div class="tn-measure">' + newMsr + '</div>';
 		}
 	}
 
-	return '<div class="tab-container">' + notes + measures + '</div>';
+	return '<div class="tn-staff">' + notes + measures + '</div>';
 }
 
 function parseTabs(text){
@@ -164,7 +166,7 @@ function parseTabs(text){
 	function addTabs(tabToken){
 		let tabs = tabToken.value;
 		let span = {
-			start: '<span class="modifier"' + (options.palmMute ? ' data-display-bottom="pm"' : '') + (tabToken.modifier ? ' data-display-left="' + tabToken.modifier + '"' : '') + '>',
+			start: '<span' + (options.palmMute ? ' data-display-bottom="pm"' : '') + (tabToken.modifier ? ' data-display-left="' + tabToken.modifier + '"' : '') + '>',
 			end: '</span>',
 			isModified: tabToken.modifier || options.palmMute
 		};
@@ -185,7 +187,7 @@ function parseTabs(text){
 		for(let st = 0; st < tablature[tablature.length - 1].length; st++){
 			if(!currentIndex.includes(st)){
 				// tablature[tablature.length - 1][st].tabs.push(" ".repeat(numDigits));
-				tablature[tablature.length - 1][st].tabs.push('<span class="modifier">' + " ".repeat(numDigits) + '</span>');
+				tablature[tablature.length - 1][st].tabs.push('<span>' + " ".repeat(numDigits) + '</span>');
 			}
 		}
 	}
