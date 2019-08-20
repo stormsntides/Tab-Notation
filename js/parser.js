@@ -87,28 +87,11 @@ function parseTabs(text){
 					tokens[z + 1].modifier = tkn.value;
 				}
         break;
-      case "Note":
-      case "Note Chord":
+      case "String":
+      case "String Chord":
 				currentIndex = [];
         for(let n = 0; n < tkn.value.length; n++){
-          // get the index of the apostrophe symbol to figure out which string is being refered to
-          let mod = tkn.value[n].indexOf("'");
-          // 0 pos refers to first mention of note name, 1 is second, 2 is third, etc...
-          let pos = mod > 0 ? tkn.value[n].substring(mod).length : 0;
-          // the actual note (e.g. A#)
-          let sub = mod > 0 ? tkn.value[n].substring(0, mod) : tkn.value[n];
-
-          // loop through and get the index of each note that is going to be written to
-          for(let i = 0; i < tablature[tablature.length - 1].length; i++){
-            if(tablature[tablature.length - 1][i].note === sub){
-              if(pos <= 0){
-                currentIndex.push(i);
-                break;
-              } else {
-                pos--;
-              }
-            }
-          }
+					currentIndex.push(tkn.value[n] - 1);
         }
         break;
 			case "Percussion":

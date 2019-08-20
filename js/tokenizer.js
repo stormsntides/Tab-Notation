@@ -2,14 +2,14 @@
 What are my options for tokenizing the input?
 
 - All note names must be capitalized: E B G D A E
-- When referring to a note that has doubles, the apostrophe (') key can be used to signify where it comes in the tuning (i.e. is it the second appearance for that note? Third?): E refers to the first E that appears, E' refers to the second E that appears
 - Brackets ([]) should begin the tab notation by describing the tuning and the time signature: [EBGDAE 4/4]
 - Tabs can be written as any number literal: 1 2 7 15 24
+- Strings can be written as "S" followed by a number literal: S1, S5, S8
 - Pound sign (#) refers to sharp notes: A#
 - Lowercase b (b) refers to flat notes: Ab
 - Forward slash (\) is a slide down: 4\1
 - Back slash (/) is a slide up: 4/7
-- Dash (-) is a chord: A-D 3-5
+- Dash (-) is a chord: S5-4 3-5
 - Caret (^) is a bend to note: 7^8 3^5^3
 - Lowercase h (h) is a hammer-on: 7h8 3h5h7
 - Lowercase p (p) is a pull-off: 7p5 5p3p0
@@ -19,9 +19,9 @@ What are my options for tokenizing the input?
 
 Character Tokens
 -  A-G = Note
+-    S = String
 -  0-9 = Tab
 -  #|b = Note Modifier
--    ' = Note Position
 -  /|\|^|h|p|t = Playing Technique
 -    - = Chord Combiner
 -    : = Time Sig Combiner
@@ -34,6 +34,8 @@ Character Tokens
 [D#A#F#C#G#D#G# 4:4] F# 10^11 C# 0 (0) 3 4^5 0 (0) 0 3 4^5 0 0 (0) F# 8 C# 4 (0 0)
 
 [EBGDAEA 4:4] A' 0 1 E' 5 A' 0 0 (0 0) 0 1 E' 5 A' 0 0 (0 0) 0 1 E' 4 A' 1 0 A 1 E' 3 A' 1
+
+[EBGDAEA 4:4] S7 0 1 S6 5 S7 0 0 (0 0) 0 1 S6 5 S7 0 0 (0 0) 0 1 S6 4 S7 1 0 S5 1 S6 3 S7 1
 */
 
 function Token(type, value) {
@@ -49,6 +51,10 @@ function isNote(ch) {
   return /[A-G]/.test(ch);
 }
 
+function isString(ch) {
+  return /S/.test(ch);
+}
+
 function isTab(ch) {
   return /\d/.test(ch);
 }
@@ -59,10 +65,6 @@ function isPercussion(ch) {
 
 function isNoteModifier(ch) {
   return /#|b/.test(ch);
-}
-
-function isNotePosition(ch) {
-  return /'/.test(ch);
 }
 
 function isTabMultiplier(ch) {
@@ -127,14 +129,15 @@ function tokenize(text) {
       result.push(new Token("Whitespace", char));
     } else if (!ignore && isNote(char)) {
       buffer.push(char);
+    } else if(!ignore && isString(char)) {
+      checkBuffer();
+      buffer.push(char);
     } else if(!ignore && isTab(char)) {
       buffer.push(char);
     } else if (!ignore && isPercussion(char)) {
       checkBuffer();
       result.push(new Token("Percussion", char));
     } else if (!ignore && isNoteModifier(char)) {
-      buffer.push(char);
-    } else if (!ignore && isNotePosition(char)) {
       buffer.push(char);
     } else if (!ignore && isTabMultiplier(char)) {
       checkBuffer();
@@ -203,8 +206,8 @@ function tokenize(text) {
         } else if(/\{\d+(?:\.\d+)*?\}/.test(bufferString)) {
           result.push(new Token("Beat Length", bufferString));
           buffer = [];
-        } else if(/(?:[A-G][#b]*'*-)+[A-G][#b]*'*/.test(bufferString)) {
-          result.push(new Token("Note Chord", bufferString.split("-")));
+        } else if(/S(?:\d+-)+\d+/.test(bufferString)) {
+          result.push(new Token("String Chord", bufferString.substring(1).split("-")));
           buffer = [];
         } else if(/(?:\d+-)+\d+/.test(bufferString)) {
           result.push(new Token("Tab Chord", bufferString.split("-")));
@@ -215,8 +218,8 @@ function tokenize(text) {
         } else if(/(?:[A-G][#b]*){2,}/.test(bufferString)){
           result.push(new Token("Tuning", bufferString));
           buffer = [];
-        } else if(/[A-G][#b]*'*/.test(bufferString)){
-          result.push(new Token("Note", [bufferString]));
+        } else if(/S\d+/.test(bufferString)){
+          result.push(new Token("String", [bufferString.substring(1)]));
           buffer = [];
         } else if(/\d+/.test(bufferString)){
           result.push(new Token("Tab", [bufferString]));
