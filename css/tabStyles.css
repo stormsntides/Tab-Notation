@@ -1,3 +1,22 @@
+svg {
+	font-family: monospace;
+	font-size: 10px;
+}
+
+svg text {
+	dominant-baseline: central;
+}
+
+#check-width {
+	position: absolute;
+	top: -1000px;
+	font-family: monospace;
+	font-size: 10px;
+	padding: 0;
+	margin: 0;
+	border: none;
+}
+
 .tn-container {
 	display: flex;
 	white-space: pre;
