@@ -1,60 +1,16 @@
-function getTabs() {
-	// reduce all tabs to single string output
-	return this.reduce(function(acc, tb) {
-		return acc + tb.toTabString();
-	}, "");
-}
-
-function toTabString() {
-	// combine tuning into node string by reducing each note in the tuning
-	let notes = '<div class="tn-notes">' + this.reduce(function(acc, st) {
-		// return acc + '<div class="tn-string"><div class="tn-note-name">' + st.note + (st.note.length < 2 ? ' ' : '') + '</div></div>';
-		return acc + '<div class="tn-string"><span>' + st.note + (st.note.length < 2 ? ' ' : '') + '</span></div>';
-	}, "") + '</div>';
-
-	// array for storing measures
-	let msrArr = [];
-	// loop through each string, keeping track of the index (important)
-	this.forEach(function(st, si){
-		// join the string's tabs together and split at the "|" char; the "|" is a measure separator
-		st.tabs.join("").split("|").forEach(function(m, mi){
-			// through simple math magic, sort the strings into the appropriate measure
-			let pos = si + mi + (si * mi);
-			msrArr.splice(pos, 0, m);
-		});
-	});
-
-	let measures = "";
-	// get the total number of measures which is the length of the sorted tabs array divided by the number of strings
-	let totalMeasures = msrArr.length / this.length;
-	// loop through each measure in the tab
-	for(let msr = 0; msr < totalMeasures; msr++){
-		// slice from the current measure times the number of strings to the beginning of the next measure and join
-		let tmpMsr = msrArr.slice(msr * this.length, msr * this.length + this.length);
-		// check to see if measure has tab content
-		if(/\S/.test(tmpMsr.join(""))){
-			// combine tabs into measure by reducing each tab
-			let newMsr = tmpMsr.reduce(function(acc, m){
-				// return acc + '<div class="tn-string"><div class="tn-tab"> ' + m + '</div></div>';
-				return acc + '<div class="tn-string"> ' + m + '</div>';
-			}, "");
-			// group tabs into measure
-			measures += '<div class="tn-measure">' + newMsr + '</div>';
-		}
-	}
-
-	return '<div class="tn-staff">' + notes + measures + '</div>';
-}
-
-function parseTabs(text){
+function parseTabs(text, charSize=5.5, lineSpacing=12){
   // tokenize text and create array to generate string tabs into
 	let tokens = tokenize(text);
 
-	// tablature holds sets of strings dependant on tuning; last array object will be the only active strings added to
-	let tablature = [
-		[]
-	];
-	tablature.getTabs = getTabs;
+	// build initial svg to attach parsed tabs to
+	let svg = "<svg width='200em' height='20em' viewbox='0 0 1000 100' version='1.1' xmlns='http://www.w3.org/2000/svg'>";
+	svg += "<rect fill='white' x='0' y='0' width='1000' height='100'/>";
+
+	// let tablature = [];
+	let tabString = "<text x='20'>";
+
+	// TODO convert all text to text path
+	let prevStringWrite = 0;
 
   // currentIndex will hold the indexes of which strings are being written to
   let currentIndex = [];
@@ -67,17 +23,31 @@ function parseTabs(text){
     let tkn = tokens[z];
     switch(tkn.type){
 			case "Tuning":
-				// if there is a previous tuning, push new tuning after it
-				if(tablature[tablature.length - 1].length > 0) {
-					tablature.push([]);
-				}
-				tablature[tablature.length - 1].toTabString = toTabString;
+				// set up the string lines and notes to be displayed
+				let lines = "<path fill='transparent' stroke='gray' stroke-width='0.5' d='m 0 " + lineSpacing;
+				let notes = "";
 				// denote the tuning to be used when selecting notes to be written to
 				let re = /[A-G][#b]*/g;
 				let buff = [];
+				let stringCount = 0;
 				while ((buff = re.exec(tkn.value)) !== null) {
-					tablature[tablature.length - 1].push({ note: buff[0], tabs: [] });
+					// get appropriate positioning based on line spacing size
+					// let yPos = (tablature.length + 1) * lineSpacing;
+					let yPos = (stringCount + 1) * lineSpacing;
+
+					lines += " h 2000 m -2000 " + lineSpacing;
+					notes += "<tspan x='0' y='" + yPos + "'>" + buff[0] + "</tspan>";
+					// tablature.push("<tspan x='20' y='" + yPos + "'>");
+					stringCount++;
 				}
+				lines += "'/>";
+
+				// size the notes display according to how many notes there are and the line spacing
+				// notes = "<g><rect fill='white' x='0' y='0' width='15' height='" + ((tablature.length + 1) * lineSpacing) + "'/><text>" + notes + "</text><line stroke='black' stroke-width='1' x1='15' y1='0' x2='15' y2='" + ((tablature.length + 1) * lineSpacing) + "'/></g>";
+				notes = "<g><rect fill='white' x='0' y='0' width='15' height='" + ((stringCount + 1) * lineSpacing) + "'/><text>" + notes + "</text><line stroke='black' stroke-width='1' x1='15' y1='0' x2='15' y2='" + ((stringCount + 1) * lineSpacing) + "'/></g>";
+
+				// lines need to go before the notes for proper displaying
+				svg += lines + notes;
 				break;
 			case "Time Signature": break;
 			case "Playing Technique":
@@ -98,7 +68,7 @@ function parseTabs(text){
 			case "Tab":
       case "Tab Chord":
 				addTabs(tkn);
-				addColumn(" ".repeat(options.beatLength));
+				addColumn("&nbsp;".repeat(options.beatLength));
         break;
       case "Open Palm Mute":
         options.palmMute = true;
@@ -130,7 +100,7 @@ function parseTabs(text){
           // repeat how many times specified in the multiply token
           for(let r = 0; r < repeat; r++){
 						addTabs(prevTkn);
-						addColumn(" ".repeat(options.beatLength));
+						addColumn("&nbsp;".repeat(options.beatLength));
           }
         }
         break;
@@ -138,40 +108,50 @@ function parseTabs(text){
     }
   }
 
-	return tablature;
+	// svg += "<g><text>";
+	// for(let i = 0; i < tablature.length; i++){
+	// 	svg += tablature[i] + "</tspan>";
+	// }
+	// svg += "</text></g></svg>";
+
+	// alt text here:
+	svg += "<g>" + tabString + "</g></svg>";
+
+	return svg;
 
 	function addColumn(char){
-		tablature[tablature.length - 1].forEach(function(st){
-			st.tabs.push(char);
-		});
+		// for(let st = 0; st < tablature.length; st++){
+		// 	tablature[st] += char;
+		// }
+		tabString += char;
 	}
 
 	function addTabs(tabToken){
 		let tabs = tabToken.value;
 		let span = {
-			start: '<span' + (options.palmMute ? ' data-display-bottom="pm"' : '') + (tabToken.modifier ? ' data-display-left="' + tabToken.modifier + '"' : '') + '>',
-			end: '</span>',
+			start: '<tspan' + (options.palmMute ? ' data-display-bottom="pm"' : '') + (tabToken.modifier ? ' data-display-left="' + tabToken.modifier + '"' : '') + '>',
+			end: '</tspan>',
 			isModified: tabToken.modifier || options.palmMute
 		};
 
 		let numDigits = 0;
+		tabs.forEach(function(v){ numDigits = numDigits < v.length ? v.length : numDigits; });
 		// loop through all notes that are being written to
 		for(let t = 0; t < currentIndex.length; t++){
 			// maxT denotes the max value t can be when get token values
 			let maxT = t >= tabs.length ? tabs.length - 1 : t;
 			// maxT signals to write the last tab to be written on the remaining notes queued
-			// let value = span.isModified ? span.start + tabs[maxT] + span.end : tabs[maxT];
-			let value = span.start + tabs[maxT] + span.end;
-			tablature[tablature.length - 1][currentIndex[t]].tabs.push(value);
-			// check if largest number of digits in token value so far
-			numDigits = numDigits < tabs[maxT].length ? tabs[maxT].length : numDigits;
+			// tablature[currentIndex[t]] += "&nbsp;".repeat(numDigits - tabs[maxT].length) + tabs[maxT];
+
+			let xPos = ((t <= 1 ? t : 1) * -(charSize)) * numDigits;
+			let yPos = (currentIndex[t] + 1) * lineSpacing;
+			tabString += "<tspan dx='" + xPos + "' y='" + yPos + "'>" + "&nbsp;".repeat(numDigits - tabs[maxT].length) + tabs[maxT] + "</tspan>";
 		}
 		// fill remaining strings with correct spacing
-		for(let st = 0; st < tablature[tablature.length - 1].length; st++){
-			if(!currentIndex.includes(st)){
-				// tablature[tablature.length - 1][st].tabs.push(" ".repeat(numDigits));
-				tablature[tablature.length - 1][st].tabs.push('<span>' + " ".repeat(numDigits) + '</span>');
-			}
-		}
+		// for(let st = 0; st < tablature.length; st++){
+		// 	if(!currentIndex.includes(st)){
+		// 		tablature[st] += "&nbsp;".repeat(numDigits);
+		// 	}
+		// }
 	}
 }
