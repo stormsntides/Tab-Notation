@@ -22,7 +22,13 @@ Character Tokens
 -    S = String
 -  0-9 = Tab
 -  #|b = Note Modifier
--  /|\|^|h|p|t = Playing Technique
+-    / = Slide Up
+-    \ = Slide Down
+-    ^ = Bend Up
+-    v = Bend Down (release)
+-    h = Hammer On
+-    p = Pull Off
+-    t = Finger Tap
 -    - = Chord Combiner
 -    : = Time Sig Combiner
 -    [ = Open Tab Info
@@ -71,8 +77,36 @@ function isTabMultiplier(ch) {
   return /\*/.test(ch);
 }
 
-function isPlayingTechnique(ch) {
-  return /h|p|t|v|\^|\\|\//.test(ch);
+// function isPlayingTechnique(ch) {
+//   return /h|p|t|v|\^|\\|\//.test(ch);
+// }
+
+function isSlideUp(ch){
+  return /\//.test(ch);
+}
+
+function isSlideDown(ch){
+  return /\\/.test(ch);
+}
+
+function isBendUp(ch){
+  return /\^/.test(ch);
+}
+
+function isBendDown(ch){
+  return /v/.test(ch);
+}
+
+function isHammerOn(ch){
+  return /h/.test(ch);
+}
+
+function isPullOff(ch){
+  return /p/.test(ch);
+}
+
+function isFingerTap(ch){
+  return /t/.test(ch);
 }
 
 function isChordCombiner(ch) {
@@ -153,9 +187,27 @@ function tokenize(text) {
       result.push(new Token("Multiply", buffer.join("")));
       buffer = [];
       i += next;
-    } else if (!ignore && isPlayingTechnique(char)) {
+    } else if (!ignore && isSlideUp(char)) {
       checkBuffer();
-      result.push(new Token("Playing Technique", char));
+      result.push(new Token("Slide Up", char));
+    } else if (!ignore && isSlideDown(char)) {
+      checkBuffer();
+      result.push(new Token("Slide Down", char));
+    } else if (!ignore && isBendUp(char)) {
+      checkBuffer();
+      result.push(new Token("Bend Up", char));
+    } else if (!ignore && isBendDown(char)) {
+      checkBuffer();
+      result.push(new Token("Bend Down", char));
+    } else if (!ignore && isHammerOn(char)) {
+      checkBuffer();
+      result.push(new Token("Hammer On", char));
+    } else if (!ignore && isPullOff(char)) {
+      checkBuffer();
+      result.push(new Token("Pull Off", char));
+    } else if (!ignore && isFingerTap(char)) {
+      checkBuffer();
+      result.push(new Token("Finger Tap", char));
     } else if (!ignore && isChordCombiner(char)) {
       buffer.push(char);
     } else if (!ignore && isOpenPalmMute(char)) {

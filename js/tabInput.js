@@ -7,7 +7,7 @@ function textToTab(container, text){
 	while(container.firstChild){
 		container.removeChild(container.firstChild);
 	}
-	// container.insertAdjacentHTML("afterbegin", tabs.getTabs());
+  // add tabs
 	container.insertAdjacentHTML("afterbegin", tabs);
 }
 
@@ -22,7 +22,10 @@ function inputToTab(e){
 
 // handler when the DOM is fully loaded
 var callback = function(){
-  fontWidthChar = document.getElementById("check-width");
+  if(!document.getElementById("tn-check-width")){
+    document.body.insertAdjacentHTML("afterBegin", "<span id='tn-check-width'>0</span>");
+  }
+  fontWidthChar = document.getElementById("tn-check-width");
 
   document.querySelectorAll("textarea").forEach(function(text_area){
     text_area.addEventListener("keyup", inputToTab);

@@ -7,7 +7,7 @@ svg text {
 	dominant-baseline: central;
 }
 
-#check-width {
+#tn-check-width {
 	position: absolute;
 	top: -1000px;
 	font-family: monospace;
@@ -17,7 +17,7 @@ svg text {
 	border: none;
 }
 
-.tn-container {
+/* .tn-container {
 	display: flex;
 	white-space: pre;
 	flex-direction: column;
@@ -99,4 +99,4 @@ svg text {
 	content: attr(data-display-left);
 	transform: translate(-0.7em, 0);
 	background-color: white;
-}
+} */
