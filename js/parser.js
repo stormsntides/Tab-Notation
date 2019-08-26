@@ -5,20 +5,21 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 	let tokens = tokenize(text);
 
 	// build initial svg to attach parsed tabs to
-	let svg = "<svg width='200em' height='20em' viewbox='0 0 1000 100' version='1.1' xmlns='http://www.w3.org/2000/svg'>";
-	svg += "<rect fill='white' x='0' y='0' width='1000' height='100'/>";
+	// let svg = "<svg width='200em' height='20em' viewbox='0 0 1000 100' version='1.1' xmlns='http://www.w3.org/2000/svg'>";
+	let svg = "";
+	// svg += "<rect fill='white' x='0' y='0' width='1000' height='100'/>";
 
 	// set up path for adding path data to later
-	let pathID = generateRandomId();
-	let pathString = "<path id='tab-path-" + pathID + "' fill='transparent' d='m " + (charSize * 4) + " " + lineSpacing + " ";
-	let textString = "<text><textPath xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='#tab-path-" + pathID + "'>";
+	// let pathID = generateRandomId();
+	// let pathString = "<path id='tab-path-" + pathID + "' fill='transparent' d='m " + (charSize * 4) + " " + lineSpacing + " ";
+	// let textString = "<text><textPath xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='#tab-path-" + pathID + "'>";
+	let pathString = "";
+	let textString = "";
 	let tabString = "";
+	let modString = "";
 
 	// keeps track of tab string length (in characters) for easier tab modifier positioning
 	let tabLength = 0;
-	// let barString = "<path fill='transparent' stroke='black' stroke-width='0.5' d='m " + (charSize * 4) + " 0 ";
-	let modString = "";
-
   // currentIndex will hold the indexes of which strings are being written to
   let currentIndex = [];
 	// prevAnchorIndex determines how to move up and down the strings based on last position
@@ -27,7 +28,6 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 	let pathLengthBuff = 0;
 	// keeps the count of all strings for adding bar lines and other staff spanning objects
 	let stringCount = 0;
-
 
 	let options = {
 		showBeats: false,
@@ -56,46 +56,56 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 				}
 				lines += "'/>";
 
-				notes = "<g><rect fill='white' x='0' y='0' width='15' height='" + ((stringCount + 1) * lineSpacing) + "'/><text>" + notes + "</text><line stroke='black' stroke-width='1' x1='15' y1='0' x2='15' y2='" + ((stringCount + 1) * lineSpacing) + "'/></g>";
+				let height = (stringCount + 1) * lineSpacing;
+
+				notes = "<g><rect fill='white' x='0' y='0' width='15' height='" + height + "'/><text>" + notes + "</text><line stroke='black' stroke-width='1' x1='15' y1='0' x2='15' y2='" + height + "'/></g>";
+
+				// check to see if there's content in SVG; close up tags and clear variables
+				if(svg.length > 0){
+					closeSVGtags();
+					resetVariables();
+				}
+
+				// add to SVG since it's possible there is already content in this variable
+				svg += "<svg width='200em' height='" + ((height * 2) / 10) + "em' viewbox='0 0 1000 " + height + "' version='1.1' xmlns='http://www.w3.org/2000/svg'>";
+				svg += "<rect fill='white' x='0' y='0' width='1000' height='" + height + "'/>";
+
+				let pathID = generateRandomId();
+				pathString = "<path id='tab-path-" + pathID + "' fill='transparent' d='m " + (charSize * 4) + " " + lineSpacing + " ";
+				textString = "<text><textPath xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='#tab-path-" + pathID + "'>";
 
 				// lines need to go before the notes for proper displaying
 				svg += lines + notes;
 				break;
-			case "Time Signature": break;
-			// case "Playing Technique":
-			// 	// check to see if there is a tab directly after the playing technique
-			// 	if(z + 1 < tokens.length && (tokens[z + 1].type === "Tab" || tokens[z + 1].type === "Tab Chord" || prevTkn.type === "Percussion")){
-			// 		// apply technique to tab
-			// 		tokens[z + 1].modifier = tkn.value;
-			// 	}
-      //   break;
+			case "Time Signature":
+				// make this "center" single digits to double digits; e.g 12 over 8, 8 should be centered in relation to 12
+				let x = ((charSize * 4) + tabLength * charSize);
+				let half = (((stringCount + 1) * lineSpacing) / 2);
+
+				modString += "<text font-size='2em' x='" + x + "' y='" + (half - lineSpacing) + "'>" + tkn.value[0] + "</text><text font-size='2em' x='" + x + "' y='" + (half + lineSpacing) + "'>" + tkn.value[1] + "</text>";
+				modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (x - charSize) + " " + half + " h " + (charSize * 4) + "'/>";
+				addChar("&nbsp;".repeat(4));
+				break;
 			case "Slide Up":
 				addModifier("slideup");
-				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "Slide Down":
 				addModifier("slidedown");
-				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "Bend Up":
 				addModifier("bendup");
-				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "Bend Down":
 				addModifier("benddown");
-				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "Hammer On":
 				addModifier("hammeron");
-				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "Pull Off":
 				addModifier("pulloff");
-				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "Finger Tap":
 				addModifier("fingertap");
-				addChar("&nbsp;".repeat(options.beatLength));
 				break;
       case "String":
       case "String Chord":
@@ -108,7 +118,6 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 			case "Tab":
       case "Tab Chord":
 				addTabs(tkn);
-				addChar("&nbsp;".repeat(options.beatLength));
         break;
       case "Open Palm Mute":
         options.palmMute = true;
@@ -130,7 +139,6 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 			case "Whitespace": break;
 			case "Bar Line":
 				addModifier("barline");
-				addChar("&nbsp;".repeat(options.beatLength));
 				break;
       case "Multiply":
         let prevTkn = z - 1 >= 0 ? tokens[z - 1] : undefined;
@@ -141,7 +149,6 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
           // repeat how many times specified in the multiply token
           for(let r = 0; r < repeat; r++){
 						addTabs(prevTkn);
-						addChar("&nbsp;".repeat(options.beatLength));
           }
         }
         break;
@@ -149,30 +156,42 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
     }
   }
 
-	textString += tabString + "</textPath></text>";
-	pathString += "h " + pathLengthBuff + "'/>";
-
-	// barString += "'/>";
-	let modifiers = "<g>" + modString + "</g>";
-
-	svg += "<g>" + pathString + textString + "</g>" + modifiers + "</svg>";
-
+	closeSVGtags();
 	return svg;
+
+	function closeSVGtags(){
+		textString += tabString + "</textPath></text>";
+		pathString += "h " + pathLengthBuff + "'/>";
+
+		let modifiers = "<g>" + modString + "</g>";
+
+		svg += "<g>" + pathString + textString + "</g>" + modifiers + "</svg>";
+	}
+
+	function resetVariables(){
+		pathString = "";
+		textString = "";
+		tabString = "";
+		modString = "";
+		tabLength = 0;
+	  currentIndex = [];
+		prevAnchorIndex = 1;
+		pathLengthBuff = 0;
+	}
 
 	function addChar(char){
 		tabString += char;
 
-		pathLengthBuff += (char === "&nbsp;" ? charSize : charSize * char.length);
-		tabLength += (char === "&nbsp;" ? 1 : char.length);
+		let c = char.replace(/&nbsp;/g, " ");
+		// pathLengthBuff += (char === "&nbsp;" ? charSize : charSize * char.length);
+		// tabLength += (char === "&nbsp;" ? 1 : char.length);
+		pathLengthBuff += charSize * c.length;
+		tabLength += c.length;
 	}
 
 	function addTabs(tabToken){
 		let tabs = tabToken.value;
-		// let span = {
-		// 	start: '<tspan' + (options.palmMute ? ' data-display-bottom="pm"' : '') + (tabToken.modifier ? ' data-display-left="' + tabToken.modifier + '"' : '') + '>',
-		// 	end: '</tspan>',
-		// 	isModified: tabToken.modifier || options.palmMute
-		// };
+
 		if(options.palmMute){ addModifier("palmmute"); }
 
 		let numDigits = 0;
@@ -206,44 +225,61 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 		}
 
 		tabLength += numDigits;
+
+		addChar("&nbsp;".repeat(options.beatLength));
 	}
 
 	function addModifier(type){
 		let tl = (charSize * 4) + tabLength * charSize;
 		let largestIndex = 0;
-		currentIndex.forEach(function(i){ largestIndex = largestIndex < i ? i : largestIndex; });
+		let smallestIndex = stringCount + 1;
+		currentIndex.forEach(function(i){
+			largestIndex = largestIndex < i ? i : largestIndex;
+			smallestIndex = smallestIndex > i ? i : smallestIndex;
+		});
 
 		switch(type){
 			case "barline":
 				modString += "<path fill='transparent' stroke='black' stroke-width='0.5' d='m " + tl + " 0 v " + ((stringCount + 1) * lineSpacing) + "'/>";
+				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "palmmute":
 				modString += "<text x='" + tl + "' y='" + (largestIndex * lineSpacing + (lineSpacing / 2)) + "'>m</text>";
 				break;
 			case "slideup":
-				modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " l " + (charSize * 2) + " " + (-1 * (lineSpacing / 2)) + "'/>";
+				// modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " l " + (charSize * 2) + " " + (-1 * (lineSpacing / 2)) + "'/>";
+				modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((smallestIndex - largestIndex) * lineSpacing - (lineSpacing / 2)) + "'/>";
+				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "slidedown":
-				modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (largestIndex * lineSpacing - (lineSpacing / 4)) + " l " + (charSize * 2) + " " + (lineSpacing / 2) + "'/>";
+				// modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (largestIndex * lineSpacing - (lineSpacing / 4)) + " l " + (charSize * 2) + " " + (lineSpacing / 2) + "'/>";
+				modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (smallestIndex * lineSpacing - (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((largestIndex - smallestIndex) * lineSpacing + lineSpacing / 2) + "'/>";
+				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "bendup":
 				modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize / 2) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (-1 * (lineSpacing / 2)) + " l 2 1.5'/>";
+				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "benddown":
 				modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize / 2) + " " + (largestIndex * lineSpacing - (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (lineSpacing / 2) + " l 2 -1.5'/>";
+				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "hammeron":
 				modString += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>h</text>";
+				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "pulloff":
 				modString += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>p</text>";
+				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "fingertap":
 				modString += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>t</text>";
+				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			default:
 				break;
 		}
+
 	}
 
 	function generateRandomId(){

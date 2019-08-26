@@ -77,10 +77,6 @@ function isTabMultiplier(ch) {
   return /\*/.test(ch);
 }
 
-// function isPlayingTechnique(ch) {
-//   return /h|p|t|v|\^|\\|\//.test(ch);
-// }
-
 function isSlideUp(ch){
   return /\//.test(ch);
 }
@@ -111,6 +107,10 @@ function isFingerTap(ch){
 
 function isChordCombiner(ch) {
   return /-/.test(ch);
+}
+
+function isTimeSigCombiner(ch) {
+  return /:/.test(ch);
 }
 
 function isOpenBeatLength(ch) {
@@ -210,6 +210,8 @@ function tokenize(text) {
       result.push(new Token("Finger Tap", char));
     } else if (!ignore && isChordCombiner(char)) {
       buffer.push(char);
+    } else if (!ignore && isTimeSigCombiner(char)) {
+      buffer.push(char);
     } else if (!ignore && isOpenPalmMute(char)) {
       checkBuffer();
       result.push(new Token("Open Palm Mute", char));
@@ -265,7 +267,7 @@ function tokenize(text) {
           result.push(new Token("Tab Chord", bufferString.split("-")));
           buffer = [];
         } else if(/\d+:\d+/.test(bufferString)) {
-          result.push(new Token("Time Signature", bufferString));
+          result.push(new Token("Time Signature", bufferString.split(":")));
           buffer = [];
         } else if(/(?:[A-G][#b]*){2,}/.test(bufferString)){
           result.push(new Token("Tuning", bufferString));
