@@ -1,5 +1,72 @@
 const ACTIVE_IDS = [];
 
+function generateRandomId(){
+	let vals = ["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"];
+	let hash = "";
+	let unique = false;
+
+	while(!unique){
+		for(let i = 0; i < 4; i++){
+			let ri = Math.floor(Math.random() * vals.length);
+			hash += vals[ri];
+		}
+		unique = !ACTIVE_IDS.includes(hash);
+	}
+
+	ACTIVE_IDS.push(hash);
+	return hash;
+}
+
+function createBuilder(){
+	return {
+		text: {
+			id: generateRandomId(),
+			path: [],
+			tabs: "",
+			mods: "",
+			addToPath: function(cmd, vals){
+				switch(cmd){
+					case "m": this.path.push({ type: "m", x: vals[0], y: vals[1] }); break;
+					case "h":
+						if(path[path.length - 1].type === "h"){
+							path[path.length - 1].x += vals;
+						} else {
+							path.push({ type: "h", x: vals });
+						}
+					default: break;
+				}
+			},
+			getPath: function(){
+				return path.reduce(function(acc, p){
+					return acc + " " + p.type + " " + p.x + (p.y ? p.y : "");
+				});
+			},
+			getTextAndPath: function(){
+				let p = "<path id='tab-path-" + this.id + "' fill='transparent' d='m " + (charSize * 4) + " " + lineSpacing + this.getPath() + "'/>";
+				let t = "<text><textPath xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='#tab-path-" + this.id + "'>" + this.tabs + "</textPath></text>";
+				return "<g>" + p + t + "</g>";
+			},
+			tabLength: function(){
+				return this.tabs.replace(/&nbsp;/gm, " ").length;
+			}
+		},
+		tuning: [],
+		strings: {
+			toWrite: [],
+			prevAnchor: 1
+		},
+		clear: function(){
+			this.text.id = generateRandomId();
+			this.text.path = [];
+			this.text.tabs = "";
+			this.text.mods = "";
+			this.tuning = [];
+			this.strings.toWrite = [];
+			this.strings.prevAnchor = 1;
+		}
+	};
+}
+
 function parseTabs(text, charSize=5.5, lineSpacing=12){
   // tokenize text and create array to generate string tabs into
 	let tokens = tokenize(text);
@@ -8,6 +75,8 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 	// let svg = "<svg width='200em' height='20em' viewbox='0 0 1000 100' version='1.1' xmlns='http://www.w3.org/2000/svg'>";
 	let svg = "";
 	// svg += "<rect fill='white' x='0' y='0' width='1000' height='100'/>";
+
+	let builder = createBuilder();
 
 	// set up path for adding path data to later
 	// let pathID = generateRandomId();
@@ -280,22 +349,5 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 				break;
 		}
 
-	}
-
-	function generateRandomId(){
-		let vals = ["0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"];
-		let hash = "";
-		let unique = false;
-
-		while(!unique){
-			for(let i = 0; i < 4; i++){
-				let ri = Math.floor(Math.random() * vals.length);
-				hash += vals[ri];
-			}
-			unique = !ACTIVE_IDS.includes(hash);
-		}
-
-		ACTIVE_IDS.push(hash);
-		return hash;
 	}
 }
