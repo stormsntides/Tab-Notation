@@ -9,7 +9,8 @@ What are my options for tokenizing the input?
 - Lowercase b (b) refers to flat notes: Ab
 - Forward slash (\) is a slide down: 4\1
 - Back slash (/) is a slide up: 4/7
-- Dash (-) is a chord: S5-4 3-5
+- Dash (-) is a string range: S5-2 3,5
+- Comma (,) is a chord: S5,4,3 3,5,7
 - Caret (^) is a bend to note: 7^8 3^5^3
 - Lowercase h (h) is a hammer-on: 7h8 3h5h7
 - Lowercase p (p) is a pull-off: 7p5 5p3p0
@@ -106,7 +107,7 @@ function isFingerTap(ch){
 }
 
 function isChordCombiner(ch) {
-  return /-/.test(ch);
+  return /,|-/.test(ch);
 }
 
 function isTimeSigCombiner(ch) {
@@ -260,11 +261,14 @@ function tokenize(text) {
         } else if(/\{\d+(?:\.\d+)*?\}/.test(bufferString)) {
           result.push(new Token("Beat Length", bufferString));
           buffer = [];
-        } else if(/S(?:\d+-)+\d+/.test(bufferString)) {
-          result.push(new Token("String Chord", bufferString.substring(1).split("-")));
+        } else if(/S(?:\d+,)+\d+/.test(bufferString)) {
+          result.push(new Token("String Chord", bufferString.substring(1).split(",")));
           buffer = [];
-        } else if(/(?:\d+-)+\d+/.test(bufferString)) {
-          result.push(new Token("Tab Chord", bufferString.split("-")));
+        } else if(/S(?:\d+-)+\d+/.test(bufferString)) {
+          result.push(new Token("String Chord Range", bufferString.substring(1).split("-")));
+          buffer = [];
+        } else if(/(?:\d+,)+\d+/.test(bufferString)) {
+          result.push(new Token("Tab Chord", bufferString.split(",")));
           buffer = [];
         } else if(/\d+:\d+/.test(bufferString)) {
           result.push(new Token("Time Signature", bufferString.split(":")));

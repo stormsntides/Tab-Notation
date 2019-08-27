@@ -19,6 +19,15 @@ function generateRandomId(){
 
 function createBuilder(charSize, lineSpacing){
 	return {
+		svg: [],
+		addNewSVG: function(){
+			let height = (this.strings.tuning.length + 1) * lineSpacing;
+			this.svg.push("<svg width='200em' height='" + ((height * 2) / 10) + "em' viewbox='0 0 1000 " + height + "' version='1.1' xmlns='http://www.w3.org/2000/svg'><rect fill='white' x='0' y='0' width='1000' height='" + height + "'/>");
+		},
+		closeAndGetSVG: function(){
+			this.closeSVG();
+			return this.svg.join("");
+		},
 		text: {
 			id: generateRandomId(),
 			path: [],
@@ -37,35 +46,58 @@ function createBuilder(charSize, lineSpacing){
 					default: break;
 				}
 			},
-			getPath: function(){
-				console.log(this.path);
-				// if(this.path.length > 0){
-					return this.path.reduce(function(acc, p){
-						return acc + " " + p.type + " " + p.x + (p.y ? " " + p.y : "");
-					}, "");
-				// }
-				// return "";
-			},
-			getTextAndPath: function(){
-				let p = "<path id='tab-path-" + this.id + "' fill='transparent' d='m " + (charSize * 4) + " " + lineSpacing + this.getPath() + "'/>";
+			getText: function(){
+				let d = this.path.reduce(function(acc, p){
+					return acc + " " + p.type + " " + p.x + (p.y ? " " + p.y : "");
+				}, "");
+				let p = "<path id='tab-path-" + this.id + "' fill='transparent' d='m " + (charSize * 4) + " " + lineSpacing + d + "'/>";
 				let t = "<text><textPath xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='#tab-path-" + this.id + "'>" + this.tabs + "</textPath></text>";
-				return "<g>" + p + t + "</g>";
+				return "<g>" + p + t + "</g><g>" + this.mods + "</g>";
 			},
 			tabLength: function(){
-				return this.tabs.replace(/&nbsp;/gm, " ").length;
+				return this.path.reduce(function(acc, l){
+					return acc + l.x;
+				}, 0);
 			}
 		},
-		tuning: [],
 		strings: {
+			tuning: [],
 			toWrite: [],
-			prevAnchor: 1
+			prevAnchor: 1,
+			getText: function(){
+				// set up the string lines and notes to be displayed
+				let lines = "<path fill='transparent' stroke='gray' stroke-width='0.5' d='m 0 " + lineSpacing;
+				let notes = "";
+
+				this.tuning.forEach(function(t, i){
+					// get appropriate positioning based on line spacing size
+					let yPos = (i + 1) * lineSpacing;
+
+					lines += " h 2000 m -2000 " + lineSpacing;
+					notes += "<tspan x='0' y='" + yPos + "'>" + t + "</tspan>";
+				});
+				lines += "'/>";
+
+				let height = (this.tuning.length + 1) * lineSpacing;
+
+				notes = "<g><rect fill='white' x='0' y='0' width='15' height='" + height + "'/><text>" + notes + "</text><line stroke='black' stroke-width='1' x1='15' y1='0' x2='15' y2='" + height + "'/></g>";
+
+				return lines + notes;
+			}
+		},
+		closeSVG: function(){
+			if(this.svg.length > 0){
+				let last = this.svg.length - 1;
+				this.svg[last] += this.strings.getText() + this.text.getText() + "</svg>";
+				this.clear();
+			}
 		},
 		clear: function(){
 			this.text.id = generateRandomId();
 			this.text.path = [];
 			this.text.tabs = "";
 			this.text.mods = "";
-			this.tuning = [];
+			this.strings.tuning = [];
 			this.strings.toWrite = [];
 			this.strings.prevAnchor = 1;
 		}
@@ -76,32 +108,8 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
   // tokenize text and create array to generate string tabs into
 	let tokens = tokenize(text);
 
-	// build initial svg to attach parsed tabs to
-	// let svg = "<svg width='200em' height='20em' viewbox='0 0 1000 100' version='1.1' xmlns='http://www.w3.org/2000/svg'>";
-	let svg = "";
-	// svg += "<rect fill='white' x='0' y='0' width='1000' height='100'/>";
-
+	// create builder that contains helper functions to add text to SVG
 	let builder = createBuilder(charSize, lineSpacing);
-
-	// set up path for adding path data to later
-	// let pathID = generateRandomId();
-	// let pathString = "<path id='tab-path-" + pathID + "' fill='transparent' d='m " + (charSize * 4) + " " + lineSpacing + " ";
-	// let textString = "<text><textPath xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='#tab-path-" + pathID + "'>";
-	/*let pathString = "";
-	let textString = "";
-	let tabString = "";
-	let modString = "";
-
-	// keeps track of tab string length (in characters) for easier tab modifier positioning
-	let tabLength = 0;
-  // currentIndex will hold the indexes of which strings are being written to
-  let currentIndex = [];
-	// prevAnchorIndex determines how to move up and down the strings based on last position
-	let prevAnchorIndex = 1;
-	// holds the total size of all chars in the current writing positions string
-	let pathLengthBuff = 0;
-	// keeps the count of all strings for adding bar lines and other staff spanning objects
-	let stringCount = 0;*/
 
 	let options = {
 		showBeats: false,
@@ -112,58 +120,39 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
     let tkn = tokens[z];
     switch(tkn.type){
 			case "Tuning":
-				// set up the string lines and notes to be displayed
-				let lines = "<path fill='transparent' stroke='gray' stroke-width='0.5' d='m 0 " + lineSpacing;
-				let notes = "";
+				// close out any current SVG texts being built
+				builder.closeSVG();
+
 				// denote the tuning to be used when selecting notes to be written to
 				let re = /[A-G][#b]*/g;
 				let buff = [];
-				// stringCount = 0;
 				while ((buff = re.exec(tkn.value)) !== null) {
-					builder.tuning.push(buff[0]);
-					// get appropriate positioning based on line spacing size
-					// let yPos = (stringCount + 1) * lineSpacing;
-					let yPos = builder.tuning.length * lineSpacing;
-
-					lines += " h 2000 m -2000 " + lineSpacing;
-					notes += "<tspan x='0' y='" + yPos + "'>" + buff[0] + "</tspan>";
-
-					// stringCount++;
+					builder.strings.tuning.push(buff[0]);
 				}
-				lines += "'/>";
-
-				// let height = (stringCount + 1) * lineSpacing;
-				let height = (builder.tuning.length + 1) * lineSpacing;
-
-				notes = "<g><rect fill='white' x='0' y='0' width='15' height='" + height + "'/><text>" + notes + "</text><line stroke='black' stroke-width='1' x1='15' y1='0' x2='15' y2='" + height + "'/></g>";
-
-				// check to see if there's content in SVG; close up tags and clear variables
-				// if(svg.length > 0){
-				// 	closeSVGtags();
-				// 	resetVariables();
-				// }
-
-				// add to SVG since it's possible there is already content in this variable
-				svg += "<svg width='200em' height='" + ((height * 2) / 10) + "em' viewbox='0 0 1000 " + height + "' version='1.1' xmlns='http://www.w3.org/2000/svg'>";
-				svg += "<rect fill='white' x='0' y='0' width='1000' height='" + height + "'/>";
-
-				// let pathID = generateRandomId();
-				// pathString = "<path id='tab-path-" + pathID + "' fill='transparent' d='m " + (charSize * 4) + " " + lineSpacing + " ";
-				// textString = "<text><textPath xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='#tab-path-" + pathID + "'>";
-
-				// lines need to go before the notes for proper displaying
-				svg += lines + notes;
+				builder.addNewSVG();
 				break;
 			case "Time Signature":
-				// make this "center" single digits to double digits; e.g 12 over 8, 8 should be centered in relation to 12
-				// let x = ((charSize * 4) + tabLength * charSize);
-				let x = ((charSize * 4) + builder.text.tabLength * charSize);
-				// let half = (((stringCount + 1) * lineSpacing) / 2);
-				let half = (((builder.tuning.length + 1) * lineSpacing) / 2);
+				// this is the x position of the beginning bar line after the tuning notes
+				let cs = charSize * 4;
+				// this is the difference between the two numbers' lengths
+				let diff = Math.abs(tkn.value[0].length - tkn.value[1].length);
+				// get the length of the largest number; i.e. number with the most digits
+				let largeNum = tkn.value[0].length < tkn.value[1].length ? tkn.value[1].length : tkn.value[0].length;
 
-				modString += "<text font-size='2em' x='" + x + "' y='" + (half - lineSpacing) + "'>" + tkn.value[0] + "</text><text font-size='2em' x='" + x + "' y='" + (half + lineSpacing) + "'>" + tkn.value[1] + "</text>";
-				modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (x - charSize) + " " + half + " h " + (charSize * 4) + "'/>";
-				addChar("&nbsp;".repeat(4));
+				// x1 is the x position of the top number, x2 is the x position of the bottom number
+				let x1 = cs + (charSize + builder.text.tabLength()) + (tkn.value[0].length < tkn.value[1].length ? ((diff * charSize) / 2) : 0);
+				let x2 = cs + (charSize + builder.text.tabLength()) + (tkn.value[1].length < tkn.value[0].length ? ((diff * charSize) / 2) : 0);
+
+				// get the midpoint between the top and bottom strings
+				let half = (((builder.strings.tuning.length + 1) * lineSpacing) / 2);
+
+				// place the numbers according to the x position at just above/below the half mark; double scaling size
+				builder.text.mods += "<g transform-origin='" + ((x1 < x2 ? x1 : x2) - charSize) + " " + half + "' transform='scale(2)'><text x='" + x1 + "' y='" + (half - (lineSpacing / 2)) + "'>" + tkn.value[0] + "</text><text x='" + x2 + "' y='" + (half + (lineSpacing / 2)) + "'>" + tkn.value[1] + "</text>";
+				// create divider line between the numbers; close out number grouping
+				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + ((x1 < x2 ? x1 : x2) - charSize) + " " + half + " h " + ((largeNum * charSize) + (charSize * 2)) + "'/></g>";
+
+				// add enough space to account for each digit's width so that spacing is uniform between time signature and tabs
+				addChar("&nbsp;".repeat(5 + (largeNum * 2)));
 				break;
 			case "Slide Up":
 				addModifier("slideup");
@@ -188,13 +177,17 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 				break;
       case "String":
       case "String Chord":
-				// currentIndex = [];
 				builder.strings.toWrite = [];
         for(let n = 0; n < tkn.value.length; n++){
-					// currentIndex.push(parseInt(tkn.value[n]));
 					builder.strings.toWrite.push(parseInt(tkn.value[n]));
         }
         break;
+			case "String Chord Range":
+				builder.strings.toWrite = [];
+				let df = tkn.value[0] - tkn.value[1];
+				for(let m = 0; m <= Math.abs(df); m++){
+					builder.strings.toWrite.push(tkn.value[0] - (m * Math.sign(df)));
+				}
 			case "Percussion":
 			case "Tab":
       case "Tab Chord":
@@ -237,40 +230,12 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
     }
   }
 
-	closeSVGtags();
-	return svg;
-
-	function closeSVGtags(){
-		// textString += tabString + "</textPath></text>";
-		// pathString += "h " + pathLengthBuff + "'/>";
-		//
-		// let modifiers = "<g>" + modString + "</g>";
-		//
-		// svg += "<g>" + pathString + textString + "</g>" + modifiers + "</svg>";
-
-		svg += builder.text.getTextAndPath() + "<g>" + builder.text.mods + "</g></svg>";
-	}
-
-	// function resetVariables(){
-	// 	pathString = "";
-	// 	textString = "";
-	// 	tabString = "";
-	// 	modString = "";
-	// 	tabLength = 0;
-	//   currentIndex = [];
-	// 	prevAnchorIndex = 1;
-	// 	pathLengthBuff = 0;
-	// }
+	return builder.closeAndGetSVG();
 
 	function addChar(char){
-		// tabString += char;
 		builder.text.tabs += char;
 
 		let c = char.replace(/&nbsp;/g, " ");
-		// pathLengthBuff += (char === "&nbsp;" ? charSize : charSize * char.length);
-		// tabLength += (char === "&nbsp;" ? 1 : char.length);
-		// pathLengthBuff += charSize * c.length;
-		// tabLength += c.length;
 		builder.text.addToPath("h", [charSize * c.length]);
 	}
 
@@ -283,52 +248,33 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 		tabs.forEach(function(v){ numDigits = numDigits < v.length ? v.length : numDigits; });
 
 		// loop through all notes that are being written to
-		// for(let t = 0; t < currentIndex.length; t++){
 		for(let t = 0; t < builder.strings.toWrite.length; t++){
 			// maxT denotes the max value t can be when get token values
 			let maxT = t >= tabs.length ? tabs.length - 1 : t;
-			// tabString += "&nbsp;".repeat(numDigits - tabs[maxT].length) + tabs[maxT];
 			builder.text.tabs += "&nbsp;".repeat(numDigits - tabs[maxT].length) + tabs[maxT];
 
 			// get the x and y positions to adjust the path depending on chords; increase length based on char amount and size
 			let xPos = ((t <= 1 ? t : 1) * -(charSize)) * numDigits;
-			// let yPos = (currentIndex[t] * lineSpacing) - (prevAnchorIndex * lineSpacing);
 			let yPos = (builder.strings.toWrite[t] * lineSpacing) - (builder.strings.prevAnchor * lineSpacing);
 			let length = numDigits * charSize;
 
-			// if no change in x or y, buffer length
-			/*if(xPos === 0 && yPos === 0){
-				pathLengthBuff += length;
-			} else {
-				// if change in x or y, check length buffer and add if greater than 0, then change writing position; reset buffer to new length
-				if(pathLengthBuff > 0){
-					pathString += "h " + pathLengthBuff + " ";
-				}
-				pathString += "m " + xPos + " " + yPos + " ";
-				pathLengthBuff = length;
-			}*/
+			// make sure to move the string position if there's a change in either x or y
 			if(xPos !== 0 || yPos !== 0){
 				builder.text.addToPath("m", [xPos, yPos]);
 			}
 			builder.text.addToPath("h", [length]);
 
 			// set previous anchor index to determine which y direction to move on next tab if string change occurs
-			// prevAnchorIndex = currentIndex[t];
 			builder.strings.prevAnchor = builder.strings.toWrite[t];
 		}
-
-		// tabLength += numDigits;
 
 		addChar("&nbsp;".repeat(options.beatLength));
 	}
 
 	function addModifier(type){
-		// let tl = (charSize * 4) + tabLength * charSize;
-		let tl = (charSize * 4) + builder.text.tabLength() * charSize;
+		let tl = (charSize * 4) + builder.text.tabLength();
 		let largestIndex = 0;
-		// let smallestIndex = stringCount + 1;
-		let smallestIndex = builder.tuning.length + 1;
-		// currentIndex.forEach(function(i){
+		let smallestIndex = builder.strings.tuning.length + 1;
 		builder.strings.toWrite.forEach(function(i){
 			largestIndex = largestIndex < i ? i : largestIndex;
 			smallestIndex = smallestIndex > i ? i : smallestIndex;
@@ -336,49 +282,37 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 
 		switch(type){
 			case "barline":
-				// modString += "<path fill='transparent' stroke='black' stroke-width='0.5' d='m " + tl + " 0 v " + ((stringCount + 1) * lineSpacing) + "'/>";
-				// modString += "<path fill='transparent' stroke='black' stroke-width='0.5' d='m " + tl + " 0 v " + ((builder.tuning.length + 1) * lineSpacing) + "'/>";
-				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='0.5' d='m " + tl + " 0 v " + ((builder.tuning.length + 1) * lineSpacing) + "'/>";
+				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='0.5' d='m " + tl + " 0 v " + ((builder.strings.tuning.length + 1) * lineSpacing) + "'/>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "palmmute":
-				// modString += "<text x='" + tl + "' y='" + (largestIndex * lineSpacing + (lineSpacing / 2)) + "'>m</text>";
 				builder.text.mods += "<text x='" + tl + "' y='" + (largestIndex * lineSpacing + (lineSpacing / 2)) + "'>m</text>";
 				break;
 			case "slideup":
-				// modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " l " + (charSize * 2) + " " + (-1 * (lineSpacing / 2)) + "'/>";
-				// modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((smallestIndex - largestIndex) * lineSpacing - (lineSpacing / 2)) + "'/>";
 				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((smallestIndex - largestIndex) * lineSpacing - (lineSpacing / 2)) + "'/>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "slidedown":
-				// modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (largestIndex * lineSpacing - (lineSpacing / 4)) + " l " + (charSize * 2) + " " + (lineSpacing / 2) + "'/>";
-				// modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (smallestIndex * lineSpacing - (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((largestIndex - smallestIndex) * lineSpacing + lineSpacing / 2) + "'/>";
 				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (smallestIndex * lineSpacing - (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((largestIndex - smallestIndex) * lineSpacing + lineSpacing / 2) + "'/>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "bendup":
-				// modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize / 2) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (-1 * (lineSpacing / 2)) + " l 2 1.5'/>";
 				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize / 2) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (-1 * (lineSpacing / 2)) + " l 2 1.5'/>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "benddown":
-				// modString += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize / 2) + " " + (largestIndex * lineSpacing - (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (lineSpacing / 2) + " l 2 -1.5'/>";
 				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize / 2) + " " + (largestIndex * lineSpacing - (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (lineSpacing / 2) + " l 2 -1.5'/>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "hammeron":
-				// modString += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>h</text>";
 				builder.text.mods += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>h</text>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "pulloff":
-				// modString += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>p</text>";
 				builder.text.mods += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>p</text>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "fingertap":
-				// modString += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>t</text>";
 				builder.text.mods += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>t</text>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
