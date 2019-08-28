@@ -18,6 +18,8 @@ function generateRandomId(){
 }
 
 function createBuilder(charSize, lineSpacing){
+	let leftPad = charSize * 4;
+
 	return {
 		svg: [],
 		addNewSVG: function(){
@@ -50,12 +52,12 @@ function createBuilder(charSize, lineSpacing){
 				let d = this.path.reduce(function(acc, p){
 					return acc + " " + p.type + " " + p.x + (p.y ? " " + p.y : "");
 				}, "");
-				let p = "<path id='tab-path-" + this.id + "' fill='transparent' d='m " + (charSize * 4) + " " + lineSpacing + d + "'/>";
+				let p = "<path id='tab-path-" + this.id + "' fill='transparent' d='m " + leftPad + " " + lineSpacing + d + "'/>";
 				let t = "<text><textPath xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='#tab-path-" + this.id + "'>" + this.tabs + "</textPath></text>";
 				return "<g>" + p + t + "</g><g>" + this.mods + "</g>";
 			},
-			tabLength: function(){
-				return this.path.reduce(function(acc, l){
+			tabLength: function(padded=false){
+				return (padded ? leftPad : 0) + this.path.reduce(function(acc, l){
 					return acc + l.x;
 				}, 0);
 			}
@@ -132,16 +134,14 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 				builder.addNewSVG();
 				break;
 			case "Time Signature":
-				// this is the x position of the beginning bar line after the tuning notes
-				let cs = charSize * 4;
 				// this is the difference between the two numbers' lengths
 				let diff = Math.abs(tkn.value[0].length - tkn.value[1].length);
 				// get the length of the largest number; i.e. number with the most digits
 				let largeNum = tkn.value[0].length < tkn.value[1].length ? tkn.value[1].length : tkn.value[0].length;
 
 				// x1 is the x position of the top number, x2 is the x position of the bottom number
-				let x1 = cs + (charSize + builder.text.tabLength()) + (tkn.value[0].length < tkn.value[1].length ? (diff * charSize) : 0);
-				let x2 = cs + (charSize + builder.text.tabLength()) + (tkn.value[1].length < tkn.value[0].length ? (diff * charSize) : 0);
+				let x1 = charSize + builder.text.tabLength(true) + (tkn.value[0].length < tkn.value[1].length ? (diff * charSize) : 0);
+				let x2 = charSize + builder.text.tabLength(true) + (tkn.value[1].length < tkn.value[0].length ? (diff * charSize) : 0);
 
 				// get the midpoint between the top and bottom strings
 				let half = (((builder.strings.tuning.length + 1) * lineSpacing) / 2);
@@ -246,12 +246,17 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 	function addTabs(tabToken){
 		let tabs = tabToken.value;
 
-		if(options.palmMute){
-			builder.text.mods += "<text x='" + tl + "' y='" + (largestIndex * lineSpacing + (lineSpacing / 2)) + "'>m</text>";
-		}
-
 		let numDigits = 0;
 		tabs.forEach(function(v){ numDigits = numDigits < v.length ? v.length : numDigits; });
+
+		if(options.palmMute){
+			let li = 0;
+			builder.strings.toWrite.forEach(function(i){
+				li = li < i ? i : li;
+			});
+			let xp = builder.text.tabLength(true) + ((charSize * (numDigits - 1)) / 2);
+			builder.text.mods += "<text fill='green' x='" + xp + "' y='" + (li * lineSpacing + (lineSpacing / 2)) + "'>m</text>";
+		}
 
 		// loop through all notes that are being written to
 		for(let t = 0; t < builder.strings.toWrite.length; t++){
@@ -278,7 +283,6 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 	}
 
 	function addModifier(type){
-		let tl = (charSize * 4) + builder.text.tabLength();
 		let largestIndex = 0;
 		let smallestIndex = builder.strings.tuning.length + 1;
 		builder.strings.toWrite.forEach(function(i){
@@ -288,38 +292,35 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 
 		switch(type){
 			case "barline":
-				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='0.5' d='m " + tl + " 0 v " + ((builder.strings.tuning.length + 1) * lineSpacing) + "'/>";
+				builder.text.mods += "<path fill='transparent' stroke='gray' stroke-width='0.5' d='m " + builder.text.tabLength(true) + " 0 v " + ((builder.strings.tuning.length + 1) * lineSpacing) + "'/>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
-			case "palmmute":
-				builder.text.mods += "<text x='" + tl + "' y='" + (largestIndex * lineSpacing + (lineSpacing / 2)) + "'>m</text>";
-				break;
 			case "slideup":
-				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((smallestIndex - largestIndex) * lineSpacing - (lineSpacing / 2)) + "'/>";
+				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((smallestIndex - largestIndex) * lineSpacing - (lineSpacing / 2)) + "'/>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "slidedown":
-				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize) + " " + (smallestIndex * lineSpacing - (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((largestIndex - smallestIndex) * lineSpacing + lineSpacing / 2) + "'/>";
+				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize) + " " + (smallestIndex * lineSpacing - (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((largestIndex - smallestIndex) * lineSpacing + lineSpacing / 2) + "'/>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "bendup":
-				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize / 2) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (-1 * (lineSpacing / 2)) + " l 2 1.5'/>";
+				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize / 2) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (-1 * (lineSpacing / 2)) + " l 2 1.5'/>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "benddown":
-				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (tl - charSize / 2) + " " + (largestIndex * lineSpacing - (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (lineSpacing / 2) + " l 2 -1.5'/>";
+				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize / 2) + " " + (largestIndex * lineSpacing - (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (lineSpacing / 2) + " l 2 -1.5'/>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "hammeron":
-				builder.text.mods += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>h</text>";
+				builder.text.mods += "<text fill='blue' x='" + (builder.text.tabLength(true) - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>h</text>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "pulloff":
-				builder.text.mods += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>p</text>";
+				builder.text.mods += "<text fill='blue' x='" + (builder.text.tabLength(true) - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>p</text>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			case "fingertap":
-				builder.text.mods += "<text x='" + (tl - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>t</text>";
+				builder.text.mods += "<text fill='blue' x='" + (builder.text.tabLength(true) - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>t</text>";
 				addChar("&nbsp;".repeat(options.beatLength));
 				break;
 			default:
