@@ -140,19 +140,22 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 				let largeNum = tkn.value[0].length < tkn.value[1].length ? tkn.value[1].length : tkn.value[0].length;
 
 				// x1 is the x position of the top number, x2 is the x position of the bottom number
-				let x1 = cs + (charSize + builder.text.tabLength()) + (tkn.value[0].length < tkn.value[1].length ? ((diff * charSize) / 2) : 0);
-				let x2 = cs + (charSize + builder.text.tabLength()) + (tkn.value[1].length < tkn.value[0].length ? ((diff * charSize) / 2) : 0);
+				let x1 = cs + (charSize + builder.text.tabLength()) + (tkn.value[0].length < tkn.value[1].length ? (diff * charSize) : 0);
+				let x2 = cs + (charSize + builder.text.tabLength()) + (tkn.value[1].length < tkn.value[0].length ? (diff * charSize) : 0);
 
 				// get the midpoint between the top and bottom strings
 				let half = (((builder.strings.tuning.length + 1) * lineSpacing) / 2);
-
+				// size text so that it's larger than normal tab font
+				builder.text.mods += "<g font-size='2em'>";
 				// place the numbers according to the x position at just above/below the half mark; double scaling size
-				builder.text.mods += "<g transform-origin='" + ((x1 < x2 ? x1 : x2) - charSize) + " " + half + "' transform='scale(2)'><text x='" + x1 + "' y='" + (half - (lineSpacing / 2)) + "'>" + tkn.value[0] + "</text><text x='" + x2 + "' y='" + (half + (lineSpacing / 2)) + "'>" + tkn.value[1] + "</text>";
+				builder.text.mods += "<text x='" + x1 + "' y='" + (half - lineSpacing) + "'>" + tkn.value[0] + "</text>";
+				builder.text.mods += "<text x='" + x2 + "' y='" + (half + lineSpacing) + "'>" + tkn.value[1] + "</text>";
 				// create divider line between the numbers; close out number grouping
-				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + ((x1 < x2 ? x1 : x2) - charSize) + " " + half + " h " + ((largeNum * charSize) + (charSize * 2)) + "'/></g>";
+				builder.text.mods += "<path fill='transparent' stroke='black' stroke-width='1' d='m " + ((x1 < x2 ? x1 : x2) - charSize) + " " + half + " h " + ((largeNum * charSize * 2) + (charSize * 2)) + "'/>";
+				builder.text.mods += "</g>";
 
 				// add enough space to account for each digit's width so that spacing is uniform between time signature and tabs
-				addChar("&nbsp;".repeat(5 + (largeNum * 2)));
+				addChar("&nbsp;".repeat(3 + (largeNum * 2)));
 				break;
 			case "Slide Up":
 				addModifier("slideup");
@@ -188,6 +191,7 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 				for(let m = 0; m <= Math.abs(df); m++){
 					builder.strings.toWrite.push(tkn.value[0] - (m * Math.sign(df)));
 				}
+				break;
 			case "Percussion":
 			case "Tab":
       case "Tab Chord":
@@ -242,7 +246,9 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 	function addTabs(tabToken){
 		let tabs = tabToken.value;
 
-		if(options.palmMute){ addModifier("palmmute"); }
+		if(options.palmMute){
+			builder.text.mods += "<text x='" + tl + "' y='" + (largestIndex * lineSpacing + (lineSpacing / 2)) + "'>m</text>";
+		}
 
 		let numDigits = 0;
 		tabs.forEach(function(v){ numDigits = numDigits < v.length ? v.length : numDigits; });
