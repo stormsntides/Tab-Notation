@@ -30,7 +30,8 @@ Character Tokens
 -    h = Hammer On
 -    p = Pull Off
 -    t = Finger Tap
--    - = Chord Combiner
+-    , = Chord Combiner
+-    - = Chord Range Combiner
 -    : = Time Sig Combiner
 -    [ = Open Tab Info
 -    ] = Close Tab Info
@@ -273,7 +274,7 @@ function tokenize(text) {
         } else if(/\d+:\d+/.test(bufferString)) {
           result.push(new Token("Time Signature", bufferString.split(":")));
           buffer = [];
-        } else if(/(?:[A-G][#b]*){2,}/.test(bufferString)){
+        } else if(/(?:[A-G][#b]*)+/.test(bufferString)){
           result.push(new Token("Tuning", bufferString));
           buffer = [];
         } else if(/S\d+/.test(bufferString)){

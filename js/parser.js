@@ -24,7 +24,8 @@ function createBuilder(charSize, lineSpacing){
 		svg: [],
 		addNewSVG: function(){
 			let height = (this.strings.tuning.length + 1) * lineSpacing;
-			this.svg.push("<svg width='200em' height='" + ((height * 2) / 10) + "em' viewbox='0 0 1000 " + height + "' version='1.1' xmlns='http://www.w3.org/2000/svg'><rect fill='white' x='0' y='0' width='1000' height='" + height + "'/>");
+			// this.svg.push("<svg width='200em' height='" + ((height * 2) / 10) + "em' viewbox='0 0 1000 " + height + "' version='1.1' xmlns='http://www.w3.org/2000/svg'><rect fill='white' x='0' y='0' width='1000' height='" + height + "'/>");
+			this.svg.push("<svg width='200em' height='" + ((height * 2) / 10) + "em' viewbox='0 0 1000 " + height + "' version='1.1' xmlns='http://www.w3.org/2000/svg' onload='makeDraggable(evt)'><rect fill='white' x='0' y='0' width='1000' height='" + height + "'/>");
 		},
 		closeAndGetSVG: function(){
 			this.closeSVG();
@@ -49,12 +50,13 @@ function createBuilder(charSize, lineSpacing){
 				}
 			},
 			getText: function(){
-				let d = this.path.reduce(function(acc, p){
-					return acc + " " + p.type + " " + p.x + (p.y ? " " + p.y : "");
-				}, "");
-				let p = "<path id='tab-path-" + this.id + "' fill='transparent' d='m " + leftPad + " " + lineSpacing + d + "'/>";
-				let t = "<text><textPath xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='#tab-path-" + this.id + "'>" + this.tabs + "</textPath></text>";
-				return "<g>" + p + t + "</g><g>" + this.mods + "</g>";
+				// let d = this.path.reduce(function(acc, p){
+				// 	return acc + " " + p.type + " " + p.x + (p.y ? " " + p.y : "");
+				// }, "");
+				// let p = "<path id='tab-path-" + this.id + "' fill='transparent' d='m " + leftPad + " " + lineSpacing + d + "'/>";
+				// let t = "<text><textPath xmlns:xlink='http://www.w3.org/1999/xlink' xlink:href='#tab-path-" + this.id + "'>" + this.tabs + "</textPath></text>";
+				// return "<g>" + p + t + "</g><g>" + this.mods + "</g>";
+				return "<g>" + this.tabs + "</g><g>" + this.mods + "</g>";
 			},
 			tabLength: function(padded=false){
 				return (padded ? leftPad : 0) + this.path.reduce(function(acc, l){
@@ -76,13 +78,15 @@ function createBuilder(charSize, lineSpacing){
 					let yPos = (i + 1) * lineSpacing;
 
 					lines += " h 2000 m -2000 " + lineSpacing;
-					notes += "<tspan x='0' y='" + yPos + "'>" + t + "</tspan>";
+					// notes += "<tspan x='0' y='" + yPos + "'>" + t + "</tspan>";
+					notes += "<text class='draggable' transform='translate(0, " + yPos + ")'>" + t + "</text>";
 				});
 				lines += "'/>";
 
 				let height = (this.tuning.length + 1) * lineSpacing;
 
-				notes = "<g><rect fill='white' x='0' y='0' width='15' height='" + height + "'/><text>" + notes + "</text><line stroke='black' stroke-width='1' x1='15' y1='0' x2='15' y2='" + height + "'/></g>";
+				// notes = "<g><rect fill='white' x='0' y='0' width='15' height='" + height + "'/><text>" + notes + "</text><line stroke='black' stroke-width='1' x1='15' y1='0' x2='15' y2='" + height + "'/></g>";
+				notes = "<rect fill='white' x='0' y='0' width='15' height='" + height + "'/>" + notes + "<line stroke='black' stroke-width='1' x1='15' y1='0' x2='15' y2='" + height + "'/>";
 
 				return lines + notes;
 			}
@@ -262,12 +266,14 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 		for(let t = 0; t < builder.strings.toWrite.length; t++){
 			// maxT denotes the max value t can be when get token values
 			let maxT = t >= tabs.length ? tabs.length - 1 : t;
-			builder.text.tabs += "&nbsp;".repeat(numDigits - tabs[maxT].length) + tabs[maxT];
+			// builder.text.tabs += "&nbsp;".repeat(numDigits - tabs[maxT].length) + tabs[maxT];
 
 			// get the x and y positions to adjust the path depending on chords; increase length based on char amount and size
 			let xPos = ((t <= 1 ? t : 1) * -(charSize)) * numDigits;
 			let yPos = (builder.strings.toWrite[t] * lineSpacing) - (builder.strings.prevAnchor * lineSpacing);
 			let length = numDigits * charSize;
+
+			builder.text.tabs += "<text class='draggable' transform='translate(" + (xPos + builder.text.tabLength(true)) + ", " + (yPos + (builder.strings.prevAnchor * lineSpacing)) + ")'>" + tabs[maxT] + "</text>";
 
 			// make sure to move the string position if there's a change in either x or y
 			if(xPos !== 0 || yPos !== 0){

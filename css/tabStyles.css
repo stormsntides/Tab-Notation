@@ -17,86 +17,24 @@ svg text {
 	border: none;
 }
 
-/* .tn-container {
-	display: flex;
-	white-space: pre;
-	flex-direction: column;
-	font-family: "Courier New", Courier, monospace !important;
-	padding: 1em 0;
+.tn-container {
+	max-width: 100%;
+	min-height: 10px;
+	padding: 5px;
 }
 
-.tn-container * {
-	box-sizing: border-box;
-}
-
-.tn-staff {
-	display: flex;
-	flex-direction: row;
-}
-
-.tn-staff {
+/* .tn-container:hover {
 	cursor: pointer;
-}
-
-.tn-notes, .tn-measure {
-	margin: 1em 0;
-}
-
-.tn-notes {
-	padding-right: 0.2em;
-	border-right: 1px solid black;
-}
-
-.tn-measure {
-	border-left: 1px solid black;
-}
-
-.tn-measure:last-of-type {
-	border-right: 1px solid black;
-}
-
-.tn-string {
-	height: 1.3em;
-	border-top: 1px solid black;
-	position: relative;
-	top: 0.5em;
-}
-
-.tn-string > * {
-	height: inherit;
-	position: relative;
-	bottom: 0.5em;
-	text-shadow: white 0 1px,
-    white 0 2px,
-		white 0 3px,
-		white 0 -1px,
-		white 0 -2px,
-		white 0 -3px,
-		white 1px 0,
-		white 2px 0,
-		white 3px 0,
-		white -1px 0,
-		white -2px 0,
-		white -3px 0;
-}
-
-.tn-string > *:hover {
-	background-color: rgba(200, 200, 255, 1);
-	text-shadow: none;
-	border-radius: 25%;
-}
-
-[data-display-bottom]::after {
-	font-size: 0.6em;
-	position: absolute;
-	content: attr(data-display-bottom);
-	transform: translate(-1em, 1.2em);
-}
-
-[data-display-left]::before {
-	font-size: 0.8em;
-	position: absolute;
-	content: attr(data-display-left);
-	transform: translate(-0.7em, 0);
-	background-color: white;
 } */
+
+.tn-container .raw-tab {
+	display: none;
+}
+
+.static {
+	cursor: not-allowed;
+}
+
+.draggable {
+	cursor: move;
+}
