@@ -17,6 +17,12 @@ function generateRandomId(){
 	return hash;
 }
 
+function testTrigger(isTriggered){
+	if(isTriggered){
+		console.log("Test Trigger function was triggered!");
+	}
+}
+
 function createBuilder(charSize, lineSpacing){
 	let leftPad = charSize * 4;
 
@@ -34,6 +40,7 @@ function createBuilder(charSize, lineSpacing){
 		text: {
 			id: generateRandomId(),
 			path: [],
+			markers: [leftPad],
 			tabs: "",
 			mods: "",
 			addToPath: function(cmd, vals){
@@ -49,6 +56,10 @@ function createBuilder(charSize, lineSpacing){
 					default: break;
 				}
 			},
+			addMarker: function(numChars=3){
+				let last = this.markers.length - 1;
+				this.markers.push(this.markers[last] + (charSize * numChars));
+			},
 			getText: function(){
 				// let d = this.path.reduce(function(acc, p){
 				// 	return acc + " " + p.type + " " + p.x + (p.y ? " " + p.y : "");
@@ -62,6 +73,9 @@ function createBuilder(charSize, lineSpacing){
 				return (padded ? leftPad : 0) + this.path.reduce(function(acc, l){
 					return acc + l.x;
 				}, 0);
+			},
+			tabCursor: function(){
+				return this.markers[this.markers.length - 1];
 			}
 		},
 		strings: {
@@ -144,8 +158,10 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 				let largeNum = tkn.value[0].length < tkn.value[1].length ? tkn.value[1].length : tkn.value[0].length;
 
 				// x1 is the x position of the top number, x2 is the x position of the bottom number
-				let x1 = charSize + builder.text.tabLength(true) + (tkn.value[0].length < tkn.value[1].length ? (diff * charSize) : 0);
-				let x2 = charSize + builder.text.tabLength(true) + (tkn.value[1].length < tkn.value[0].length ? (diff * charSize) : 0);
+				// let x1 = charSize + builder.text.tabLength(true) + (tkn.value[0].length < tkn.value[1].length ? (diff * charSize) : 0);
+				// let x2 = charSize + builder.text.tabLength(true) + (tkn.value[1].length < tkn.value[0].length ? (diff * charSize) : 0);
+				let x1 = charSize + builder.text.tabCursor() + (tkn.value[0].length < tkn.value[1].length ? (diff * charSize) : 0);
+				let x2 = charSize + builder.text.tabCursor() + (tkn.value[1].length < tkn.value[0].length ? (diff * charSize) : 0);
 
 				// get the midpoint between the top and bottom strings
 				let half = (((builder.strings.tuning.length + 1) * lineSpacing) / 2);
@@ -159,7 +175,8 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 				builder.text.mods += "</g>";
 
 				// add enough space to account for each digit's width so that spacing is uniform between time signature and tabs
-				addChar("&nbsp;".repeat(3 + (largeNum * 2)));
+				// addChar("&nbsp;".repeat(3 + (largeNum * 2)));
+				builder.text.addMarker(3 + (largeNum * 2));
 				break;
 			case "Slide Up":
 				addModifier("slideup");
@@ -258,7 +275,8 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 			builder.strings.toWrite.forEach(function(i){
 				li = li < i ? i : li;
 			});
-			let xp = builder.text.tabLength(true) + ((charSize * (numDigits - 1)) / 2);
+			// let xp = builder.text.tabLength(true) + ((charSize * (numDigits - 1)) / 2);
+			let xp = builder.text.tabCursor() + (charSize / 2);
 			builder.text.mods += "<text fill='green' x='" + xp + "' y='" + (li * lineSpacing + (lineSpacing / 2)) + "'>m</text>";
 		}
 
@@ -273,7 +291,8 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 			let yPos = (builder.strings.toWrite[t] * lineSpacing) - (builder.strings.prevAnchor * lineSpacing);
 			let length = numDigits * charSize;
 
-			builder.text.tabs += "<text class='draggable' transform='translate(" + (xPos + builder.text.tabLength(true)) + ", " + (yPos + (builder.strings.prevAnchor * lineSpacing)) + ")'>" + tabs[maxT] + "</text>";
+			let xMod = tabs[maxT].length === 1 ? charSize / 2 : 0;
+			builder.text.tabs += "<text class='draggable' transform='translate(" + (builder.text.tabCursor() + xMod) + ", " + (builder.strings.toWrite[t] * lineSpacing) + ")'>" + tabs[maxT] + "</text>";
 
 			// make sure to move the string position if there's a change in either x or y
 			if(xPos !== 0 || yPos !== 0){
@@ -285,7 +304,9 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 			builder.strings.prevAnchor = builder.strings.toWrite[t];
 		}
 
-		addChar("&nbsp;".repeat(options.beatLength));
+		builder.text.addMarker();
+
+		// addChar("&nbsp;".repeat(options.beatLength));
 	}
 
 	function addModifier(type){
@@ -298,36 +319,52 @@ function parseTabs(text, charSize=5.5, lineSpacing=12){
 
 		switch(type){
 			case "barline":
-				builder.text.mods += "<path fill='transparent' stroke='gray' stroke-width='0.5' d='m " + builder.text.tabLength(true) + " 0 v " + ((builder.strings.tuning.length + 1) * lineSpacing) + "'/>";
-				addChar("&nbsp;".repeat(options.beatLength));
+				// builder.text.mods += "<path fill='transparent' stroke='gray' stroke-width='0.5' d='m " + builder.text.tabLength(true) + " 0 v " + ((builder.strings.tuning.length + 1) * lineSpacing) + "'/>";
+				builder.text.mods += "<path fill='transparent' stroke='gray' stroke-width='0.5' d='m " + (builder.text.tabCursor() + charSize) + " 0 v " + ((builder.strings.tuning.length + 1) * lineSpacing) + "'/>";
+				// addChar("&nbsp;".repeat(options.beatLength));
+				builder.text.addMarker();
 				break;
 			case "slideup":
-				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((smallestIndex - largestIndex) * lineSpacing - (lineSpacing / 2)) + "'/>";
-				addChar("&nbsp;".repeat(options.beatLength));
+				// builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((smallestIndex - largestIndex) * lineSpacing - (lineSpacing / 2)) + "'/>";
+				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabCursor() - charSize) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((smallestIndex - largestIndex) * lineSpacing - (lineSpacing / 2)) + "'/>";
+				// addChar("&nbsp;".repeat(options.beatLength));
+				builder.text.addMarker(1);
 				break;
 			case "slidedown":
-				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize) + " " + (smallestIndex * lineSpacing - (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((largestIndex - smallestIndex) * lineSpacing + lineSpacing / 2) + "'/>";
-				addChar("&nbsp;".repeat(options.beatLength));
+				// builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize) + " " + (smallestIndex * lineSpacing - (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((largestIndex - smallestIndex) * lineSpacing + lineSpacing / 2) + "'/>";
+				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabCursor() - charSize) + " " + (smallestIndex * lineSpacing - (lineSpacing / 4)) + " l " + (charSize * 2) + " " + ((largestIndex - smallestIndex) * lineSpacing + lineSpacing / 2) + "'/>";
+				// addChar("&nbsp;".repeat(options.beatLength));
+				builder.text.addMarker(1);
 				break;
 			case "bendup":
-				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize / 2) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (-1 * (lineSpacing / 2)) + " l 2 1.5'/>";
-				addChar("&nbsp;".repeat(options.beatLength));
+				// builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize / 2) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (-1 * (lineSpacing / 2)) + " l 2 1.5'/>";
+				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabCursor() - charSize / 2) + " " + (largestIndex * lineSpacing + (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (-1 * (lineSpacing / 2)) + " l 2 1.5'/>";
+				// addChar("&nbsp;".repeat(options.beatLength));
+				builder.text.addMarker(1);
 				break;
 			case "benddown":
-				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize / 2) + " " + (largestIndex * lineSpacing - (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (lineSpacing / 2) + " l 2 -1.5'/>";
-				addChar("&nbsp;".repeat(options.beatLength));
+				// builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabLength(true) - charSize / 2) + " " + (largestIndex * lineSpacing - (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (lineSpacing / 2) + " l 2 -1.5'/>";
+				builder.text.mods += "<path fill='transparent' stroke='red' stroke-width='1' d='m " + (builder.text.tabCursor() - charSize / 2) + " " + (largestIndex * lineSpacing - (lineSpacing / 4)) + " q " + charSize + " 0 "  + charSize + " " + (lineSpacing / 2) + " l 2 -1.5'/>";
+				// addChar("&nbsp;".repeat(options.beatLength));
+				builder.text.addMarker(1);
 				break;
 			case "hammeron":
-				builder.text.mods += "<text fill='blue' x='" + (builder.text.tabLength(true) - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>h</text>";
-				addChar("&nbsp;".repeat(options.beatLength));
+				// builder.text.mods += "<text fill='blue' x='" + (builder.text.tabLength(true) - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>h</text>";
+				builder.text.mods += "<text fill='blue' x='" + (builder.text.tabCursor() - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>h</text>";
+				// addChar("&nbsp;".repeat(options.beatLength));
+				builder.text.addMarker(1);
 				break;
 			case "pulloff":
-				builder.text.mods += "<text fill='blue' x='" + (builder.text.tabLength(true) - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>p</text>";
-				addChar("&nbsp;".repeat(options.beatLength));
+				// builder.text.mods += "<text fill='blue' x='" + (builder.text.tabLength(true) - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>p</text>";
+				builder.text.mods += "<text fill='blue' x='" + (builder.text.tabCursor() - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>p</text>";
+				// addChar("&nbsp;".repeat(options.beatLength));
+				builder.text.addMarker(1);
 				break;
 			case "fingertap":
-				builder.text.mods += "<text fill='blue' x='" + (builder.text.tabLength(true) - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>t</text>";
-				addChar("&nbsp;".repeat(options.beatLength));
+				// builder.text.mods += "<text fill='blue' x='" + (builder.text.tabLength(true) - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>t</text>";
+				builder.text.mods += "<text fill='blue' x='" + (builder.text.tabCursor() - (charSize / 2)) + "' y='" + (largestIndex * lineSpacing) + "'>t</text>";
+				// addChar("&nbsp;".repeat(options.beatLength));
+				builder.text.addMarker(1);
 				break;
 			default:
 				break;
