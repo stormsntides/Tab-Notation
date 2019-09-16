@@ -57,26 +57,79 @@
       </div>
     </div>
 
-    <div>
+    <!-- <div>
     	<textarea for="tab1"></textarea>
     </div>
 
-    <div class="tn-container" name="tab1"></div>
+    <div class="tn-container" name="tab1"></div> -->
 
-    <div class="tn-container">
+    <!-- <div class="tn-container">
       <div class="raw-tab">D#A#F#C#G#D#G# S3 10^11 S4 0 (0) 3 4^5 0 (0) 0 3 4^5 0 0 (0) S3 8 S4 4 (0 0)</div>
-    </div>
+    </div> -->
 
     <div class="tn-container">
       <div class="raw-tab">EBGDAE S1-3 10,11,12 S4 8 7 5 3 S6-4 5*8</div>
     </div>
-    <div class="tn-container">
+    <!-- <div class="tn-container">
     	<div class="raw-tab">EBGDAEA S7 0h1 S6 5^6 S7 0 0 (0 0) 0h1 S6 5^6 S7 0 0 (0 0) 0h1 S6 4 S7 1 0 S5 1 S6 3 S7 1</div>
     </div>
     <div class="tn-container">
     	<div class="raw-tab">EBGDAEA S7 3^4 0 0 0 0 S5 (5) S5,4 5,7*2 S7 0 3 0</div>
-    </div>
+    </div> -->
 
+    <!-- how do I turn this into the raw tab? -->
+    <div class="tn-container">
+      <div class="raw-tab">D#A#F#C#G#D#G# S3 10^11 S4 0 (0) 3 4^5 0 (0) 0 3 4^5 0 0 (0) S3 8 S4 4 (0 0)</div>
+      <svg width="200em" height="19.2em" viewBox="0 0 1000 96" version="1.1" xmlns="http://www.w3.org/2000/svg" onload="makeDraggable(evt)">
+        <rect fill="white" x="0" y="0" width="1000" height="96"></rect>
+        <path fill="transparent" stroke="gray" stroke-width="0.5" d="m 0 12 h 2000 m -2000 12 h 2000 m -2000 12 h 2000 m -2000 12 h 2000 m -2000 12 h 2000 m -2000 12 h 2000 m -2000 12 h 2000 m -2000 12"></path>
+        <rect fill="white" x="0" y="0" width="15" height="96"></rect>
+        <g name="notes">
+          <text data-type="note" class="draggable restrict-x" transform="translate(0, 12)">D#</text>
+          <text data-type="note" class="draggable restrict-x" transform="translate(0, 24)">A#</text>
+          <text data-type="note" class="draggable restrict-x" transform="translate(0, 36)">F#</text>
+          <text data-type="note" class="draggable restrict-x" transform="translate(0, 48)">C#</text>
+          <text data-type="note" class="draggable restrict-x" transform="translate(0, 60)">G#</text>
+          <text data-type="note" class="draggable restrict-x" transform="translate(0, 72)">D#</text>
+          <text data-type="note" class="draggable restrict-x" transform="translate(0, 84)">G#</text>
+        </g>
+        <line stroke="black" stroke-width="1" x1="15" y1="0" x2="15" y2="96"></line>
+        <g name="tabs">
+          <text data-type="tab" class="draggable" transform="translate(24, 36)">10</text>
+          <path data-type="bendup" class="draggable" fill="transparent" stroke="red" stroke-width="1" d="m 0 0 q 6 0 6 -6 l 2 1.5" transform="translate(39, 39)"></path>
+          <text data-type="tab" class="draggable" transform="translate(48, 36)">11</text>
+          <text data-type="tab" class="draggable" transform="translate(69, 48)">0</text>
+          <text data-type="palmmute" class="draggable" fill="green" transform="translate(87, 54)">m</text>
+          <text data-type="tab" class="draggable" transform="translate(87, 48)">0</text>
+          <text data-type="tab" class="draggable" transform="translate(105, 48)">3</text>
+          <text data-type="tab" class="draggable" transform="translate(123, 48)">4</text>
+          <path data-type="bendup" class="draggable" fill="transparent" stroke="red" stroke-width="1" d="m 0 0 q 6 0 6 -6 l 2 1.5" transform="translate(135, 51)"></path>
+          <text data-type="tab" class="draggable" transform="translate(147, 48)">5</text>
+          <text data-type="tab" class="draggable" transform="translate(165, 48)">0</text>
+          <text data-type="palmmute" class="draggable" fill="green" transform="translate(183, 54)">m</text>
+          <text data-type="tab" class="draggable" transform="translate(183, 48)">0</text>
+          <text data-type="tab" class="draggable" transform="translate(201, 48)">0</text>
+          <text data-type="tab" class="draggable" transform="translate(219, 48)">3</text>
+          <text data-type="tab" class="draggable" transform="translate(237, 48)">4</text>
+          <path data-type="bendup" class="draggable" fill="transparent" stroke="red" stroke-width="1" d="m 0 0 q 6 0 6 -6 l 2 1.5" transform="translate(249, 51)"></path>
+          <text data-type="tab" class="draggable" transform="translate(261, 48)">5</text>
+          <text data-type="tab" class="draggable" transform="translate(279, 48)">0</text>
+          <text data-type="tab" class="draggable" transform="translate(297, 48)">0</text>
+          <text data-type="palmmute" class="draggable" fill="green" transform="translate(315, 54)">m</text>
+          <text data-type="tab" class="draggable" transform="translate(315, 48)">0</text>
+          <text data-type="tab" class="draggable" transform="translate(333, 36)">8</text>
+          <text data-type="tab" class="draggable" transform="translate(351, 48)">4</text>
+          <text data-type="palmmute" class="draggable" fill="green" transform="translate(369, 54)">m</text>
+          <text data-type="tab" class="draggable" transform="translate(369, 48)">0</text>
+          <text data-type="palmmute" class="draggable" fill="green" transform="translate(387, 54)">m</text>
+          <text data-type="tab" class="draggable" transform="translate(387, 48)">0</text>
+        </g>
+      </svg>
+    </div>
+    <!-- -->
+
+
+    <script type="text/javascript" src="js/settings.js"></script>
     <script type="text/javascript" src="js/tokenizer.js"></script>
     <script type="text/javascript" src="js/parser.js"></script>
     <script type="text/javascript" src="js/tabInput.js"></script>

@@ -24,36 +24,45 @@ function makeDraggable(evt) {
 
   // keep track of the element being dragged, the offset position of the mouse, and the current transform
   // get min and max boundaries to confine svg elements
-  var selectedElement, offset, transform, minX, minY, maxX, maxY;
+  var selectedElement, offset, transform, min, max;
+
+  function initDrag(evt){
+    offset = getMousePosition(evt);
+    min = { x: 0, y: 0 };
+    max = { x: 0, y: 0 };
+
+    // set boundaries so that elements can't "escape" svg
+    var brect = svg.getBoundingClientRect();
+    var bbox = selectedElement.getBBox();
+    min.x = 0 - bbox.x;
+    max.x = brect.width - bbox.x - bbox.width;
+    min.y = 0 - bbox.y;
+    max.y = brect.height - bbox.y - bbox.height;
+
+    // make sure the first transform on the element is a translate transform
+    var transforms = selectedElement.transform.baseVal;
+
+    if (transforms.length === 0 || transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE) {
+      // create a transform that translates by (0, 0)
+      var translate = svg.createSVGTransform();
+      translate.setTranslate(0, 0);
+      selectedElement.transform.baseVal.insertItemBefore(translate, 0);
+    }
+
+    // get initial translation
+    transform = transforms.getItem(0);
+    offset.x -= transform.matrix.e;
+    offset.y -= transform.matrix.f;
+  }
 
   function startDrag(evt) {
     // make sure element is draggable before attempting to move
     if (evt.target.classList.contains('draggable')) {
       selectedElement = evt.target;
-      offset = getMousePosition(evt);
-
-      // set boundaries so that elements can't "escape" svg
-      var brect = svg.getBoundingClientRect();
-      var bbox = selectedElement.getBBox();
-      minX = 0 - bbox.x;
-      maxX = brect.width - bbox.x - bbox.width;
-      minY = 0 - bbox.y;
-      maxY = brect.height - bbox.y - bbox.height;
-
-      // make sure the first transform on the element is a translate transform
-      var transforms = selectedElement.transform.baseVal;
-
-      if (transforms.length === 0 || transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE) {
-        // create a transform that translates by (0, 0)
-        var translate = svg.createSVGTransform();
-        translate.setTranslate(0, 0);
-        selectedElement.transform.baseVal.insertItemBefore(translate, 0);
-      }
-
-      // get initial translation
-      transform = transforms.getItem(0);
-      offset.x -= transform.matrix.e;
-      offset.y -= transform.matrix.f;
+      initDrag(evt);
+    } else if (evt.target.parentNode.classList.contains('draggable')){
+      selectedElement = evt.target.parentNode;
+      initDrag(evt);
     }
   }
 
@@ -62,13 +71,13 @@ function makeDraggable(evt) {
       evt.preventDefault();
       var coord = getMousePosition(evt);
 
-      var dx = coord.x - offset.x;
-      var dy = coord.y - offset.y;
+      var dx = selectedElement.classList.contains('restrict-x') ? transform.matrix.e : coord.x - offset.x;
+      var dy = selectedElement.classList.contains('restrict-y') ? transform.matrix.f : coord.y - offset.y;
 
-      if(dx < minX) { dx = minX; }
-      else if(dx > maxX) { dx = maxX; }
-      if(dy < minY) { dy = minY; }
-      else if(dy > maxY) { dy = maxY; }
+      if(dx < min.x) { dx = min.x; }
+      else if(dx > max.x) { dx = max.x; }
+      if(dy < min.y) { dy = min.y; }
+      else if(dy > max.y) { dy = max.y; }
 
       transform.setTranslate(dx, dy);
     }
