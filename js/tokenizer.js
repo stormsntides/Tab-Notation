@@ -147,10 +147,34 @@ function isComment(ch) {
   return /"/.test(ch);
 }
 
+function nextToken(from, includeWhitespace=false){
+  for(let i = from + 1; i < this.length; i++){
+    if(includeWhitespace){
+      return this[i];
+    } else if(this[i].type !== "Whitespace") {
+      return this[i];
+    }
+  }
+  return null;
+}
+
+function prevToken(from, includeWhitespace=false){
+  for(let i = from - 1; i >= 0; i--){
+    if(includeWhitespace){
+      return this[i];
+    } else if(this[i].type !== "Whitespace") {
+      return this[i];
+    }
+  }
+  return null;
+}
+
 function tokenize(text) {
   let str = text.split("");
 
   let result = [];
+  result.nextToken = nextToken;
+  result.prevToken = prevToken;
   let buffer = [];
 
   let ignore = false;
@@ -177,18 +201,7 @@ function tokenize(text) {
       buffer.push(char);
     } else if (!ignore && isTabMultiplier(char)) {
       checkBuffer();
-      buffer.push(char);
-
-      let next = 0;
-      for(let n = 1; n <= 2; n++){
-        if(isTab(str[i + n])) {
-          buffer.push(str[i + n]);
-          next = n;
-        }
-      }
-      result.push(new Token("Multiply", buffer.join("")));
-      buffer = [];
-      i += next;
+      result.push(new Token("Multiply", char));
     } else if (!ignore && isSlideUp(char)) {
       checkBuffer();
       result.push(new Token("Slide Up", char));
