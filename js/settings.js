@@ -1,6 +1,9 @@
 const SETTINGS = {
   charSize: 6,
-  lineSpacing: 12
+  lineSpacing: 12,
+  clamp: function(n, min, max){
+    return Math.min(Math.max(n, min), max);
+  }
 };
 
 function loadSettings(){

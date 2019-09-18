@@ -5,6 +5,8 @@ function testTrigger(isTriggered){
 	}
 }
 
+
+
 // function convertToText(ele){
 // 	let tn;
 // 	if(ele.classList.contains("tn-container")){
@@ -16,55 +18,41 @@ function testTrigger(isTriggered){
 // 	let text = "";
 // 	let trfre = /((?:\d+\.){0,1}\d+)/g;
 // 	tn.querySelectorAll("svg").forEach(function(svg){
-// 		// get notes and sort them using y position
 // 		let notes = Array.from(svg.querySelectorAll("g[name='notes'] > [data-type='note']"));
-// 		notes.sort(function(a, b){
-// 			return parseFloat(a.getAttribute("transform").match(trfre)[1]) - parseFloat(b.getAttribute("transform").match(trfre)[1]);
-// 		});
-// 		notes.forEach(function(n){ text += n.textContent; });
-// 		text += " ";
+// 		// create easier to work with objects
+// 		for(let ni = 0; ni < notes.length; ni++){
+// 			let trf = notes[ni].getAttribute("transform").match(trfre);
+// 			notes[ni] = { note: notes[ni].textContent, x: parseFloat(trf[0]), y: parseFloat(trf[1]) };
+// 		}
+// 		// sort notes using y position
+// 		notes.sort(function(a, b){ return a.y - b.y; });
 //
 // 		// get tabs and sort them using x position
 // 		let tabs = Array.from(svg.querySelectorAll("g[name='tabs'] > *"));
-// 		tabs.sort(function(a, b){
-// 			return parseFloat(a.getAttribute("transform").match(trfre)[0]) - parseFloat(b.getAttribute("transform").match(trfre)[0]);
-// 		});
+// 		// create easier to work with objects
+// 		for(let ti = 0; ti < tabs.length; ti++){
+// 			let trf = tabs[ti].getAttribute("transform").match(trfre);
+// 			tabs[ti] = { type: tabs[ti].dataset["type"], tab: tabs[ti].textContent, x: parseFloat(trf[0]), y: parseFloat(trf[1]) };
+// 		}
+// 		// sort notes using x position
+// 		tabs.sort(function(a, b){ return a.x - b.x; });
+// 		// normalize x to charSize
+// 		tabs.map(function(t){ return Math.round(t.x / SETTINGS.charSize) * SETTINGS.charSize; });
 //
-// 		let prevLine = "";
-// 		let isChord = false;
+// 		let tabText = "";
 // 		let temp = "";
-// 		for(let i = 0; i < tabs.length; i++){
-// 			let trf = tabs[i].getAttribute("transform").match(trfre);
-// 			trf[0] = Math.round(trf[0] / SETTINGS.charSize) * SETTINGS.charSize;
-// 			trf[1] = Math.round(trf[1] / SETTINGS.lineSpacing) * SETTINGS.lineSpacing;
-//
-// 			if(tabs[i].dataset["type"] === "tab"){
-// 				temp += tabs[i].textContent;
-//
-// 				let strLine = trf[1] / SETTINGS.lineSpacing;
-// 				if(prevLine !==)
-//
-// 				if(i + 1 < tabs.length){
-//
-// 					let nexttrf = tabs[i].getAttribute("transform").match(trfre);
-// 					nexttrf[0] = Math.round(nexttrf[0] / SETTINGS.charSize) * SETTINGS.charSize;
-// 					nexttrf[1] = Math.round(nexttrf[1] / SETTINGS.lineSpacing) * SETTINGS.lineSpacing;
-//
-// 					if(trf[0] === nexttrf[0]){
-// 						text += tabs[i].textContent + ",";
-// 					}
-// 					else { text += tabs[i].textContent + " "; }
-// 				}
-// 				if(prevLine !== trf[1]){
-// 					prevLine = trf[1];
-// 					text += "S" + (trf[1] / SETTINGS.lineSpacing) + " ";
+// 		tabs.forEach(function(tb){
+// 			let yPos = SETTINGS.clamp(Math.round(tb.y / SETTINGS.lineSpacing), 1, builder.strings.tuning.length);
+// 			if(temp.indexOf(yPos) >= 0){
+// 				if(tb.type === "tab"){
+// 					tabText += tb.tab + " ";
 // 				}
 // 			}
-// 		}
+// 		});
+//
+// 		console.log(notes);
+// 		console.log(newTabs);
 // 	});
-// 	console.log("New Text: " + text);
-// 	tn.querySelector(".raw-tab").textContent = text;
-// 	printTabs(tn);
 // }
 
 function parseTabs(text){
@@ -210,7 +198,7 @@ function parseTabs(text){
 			// xMod centers single chars in their tab position
 			let xMod = tabs[maxT].length === 1 ? SETTINGS.charSize / 2 : 0;
 			builder.tabs.addTab("text", {
-				type: "tab",
+				type: tabToken.type.replace(" ", "").toLowerCase(),
 				classes: "draggable",
 				fill: "black",
 				translate: {
