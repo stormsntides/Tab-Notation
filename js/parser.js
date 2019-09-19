@@ -61,7 +61,7 @@ function parseTabs(text){
 	console.log(tokens);
 
 	// create builder that contains helper functions to add text to SVG
-	let builder = createBuilder();
+	let builder = new SVGbuilder();
 
 	let options = {
 		showBeats: false,

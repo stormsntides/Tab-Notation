@@ -1,7 +1,6 @@
 function rearrangeNodes(movedEle){
 	if(movedEle && movedEle.classList.contains("moved")){
-		let re = /((?:\d+\.){0,1}\d+)/g;
-		let meTrf = movedEle.getAttribute("transform").match(re);
+		let meTrf = movedEle.transform.baseVal.getItem(0);
 		// get the parent note group and loop through each child
 		let eleGroup = movedEle.parentNode;
 		let groupName = eleGroup.getAttribute("name");
@@ -10,10 +9,11 @@ function rearrangeNodes(movedEle){
 		for(let ci = 0; ci < eleGroup.children.length; ci++){
 			let child = eleGroup.children[ci];
 			// get the translation values for each element
-			let chTrf = child.getAttribute("transform").match(re);
-			chTrf = [parseFloat(chTrf[0]), parseFloat(chTrf[1])];
+			let chTrf = child.transform.baseVal.getItem(0);
 			// insert the node before the child if y value is lesser in note group or x value is lesser in tabs group
-			if((groupName === "notes" && meTrf[1] < chTrf[1]) || (groupName === "tabs" && meTrf[0] < chTrf[0])){
+			let isXless = meTrf.matrix.e < chTrf.matrix.e;
+			let isYless = meTrf.matrix.f < chTrf.matrix.f;
+			if((groupName === "notes" && isYless) || (groupName === "tabs" && isXless)){
 				movedEle.classList.remove("moved");
 				eleGroup.insertBefore(movedEle, child);
 				break;
@@ -24,6 +24,17 @@ function rearrangeNodes(movedEle){
 			movedEle.classList.remove("moved");
 			eleGroup.append(movedEle);
 		}
+
+		/*
+		A test that gets all of the siblings before the element; could be used before moving to
+		figure out where in the raw text the tab is
+
+		let totalTabs = 0;
+		while((test = test.previousSibling) !== null){
+			if(test.dataset["type"] === "tab"){totalTabs += 1;}
+		}
+		console.log(totalTabs);
+		*/
 	}
 }
 
