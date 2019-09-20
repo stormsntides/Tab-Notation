@@ -15,7 +15,7 @@ What are my options for tokenizing the input?
 - Lowercase h (h) is a hammer-on: 7h8 3h5h7
 - Lowercase p (p) is a pull-off: 7p5 5p3p0
 - Lowercase t (t) is a finger-tap: t15 t17
-- Parentheses (()) are palm mutes: (0) (0) (0 1 3 1 0)
+- Lowercase m (m) is a palm mute: m0 m0 m0 m1 m3 m12 m10
 
 
 Character Tokens
@@ -23,6 +23,7 @@ Character Tokens
 -    S = String
 -  0-9 = Tab
 -  #|b = Note Modifier
+-    m = Palm Mute
 -    / = Slide Up
 -    \ = Slide Down
 -    ^ = Bend Up
@@ -35,15 +36,11 @@ Character Tokens
 -    : = Time Sig Combiner
 -    [ = Open Tab Info
 -    ] = Close Tab Info
--    ( = Open Palm Mute
--    ) = Close Palm Mute
 
 
-[D#A#F#C#G#D#G# 4:4] F# 10^11 C# 0 (0) 3 4^5 0 (0) 0 3 4^5 0 0 (0) F# 8 C# 4 (0 0)
+[D#A#F#C#G#D#G# 4:4] s3 10^11 s4 0 m0 3 4^5 0 m0 0 3 4^5 0 0 m0 s3 8 s4 4 m0 m0
 
-[EBGDAEA 4:4] A' 0 1 E' 5 A' 0 0 (0 0) 0 1 E' 5 A' 0 0 (0 0) 0 1 E' 4 A' 1 0 A 1 E' 3 A' 1
-
-[EBGDAEA 4:4] S7 0 1 S6 5 S7 0 0 (0 0) 0 1 S6 5 S7 0 0 (0 0) 0 1 S6 4 S7 1 0 S5 1 S6 3 S7 1
+[EBGDAEA 4:4] S7 0 1 S6 5 S7 0 0 m0 m0 0 1 S6 5 S7 0 0 m0 m0 0 1 S6 4 S7 1 0 S5 1 S6 3 S7 1
 */
 
 function Token(type, value) {
@@ -60,7 +57,7 @@ function isNote(ch) {
 }
 
 function isString(ch) {
-  return /S/.test(ch);
+  return /S/i.test(ch);
 }
 
 function isTab(ch) {
@@ -107,6 +104,10 @@ function isFingerTap(ch){
   return /t/.test(ch);
 }
 
+function isPalmMute(ch) {
+  return /m/.test(ch);
+}
+
 function isChordCombiner(ch) {
   return /,|-/.test(ch);
 }
@@ -131,13 +132,6 @@ function isCloseTabInfo(ch) {
   return /\]/.test(ch);
 }
 
-function isOpenPalmMute(ch) {
-  return /\(/.test(ch);
-}
-
-function isClosePalmMute(ch) {
-  return /\)/.test(ch);
-}
 
 function isBarLine(ch) {
   return /\|/.test(ch);
@@ -227,12 +221,9 @@ function tokenize(text) {
       buffer.push(char);
     } else if (!ignore && isTimeSigCombiner(char)) {
       buffer.push(char);
-    } else if (!ignore && isOpenPalmMute(char)) {
+    } else if (!ignore && isPalmMute(char)) {
       checkBuffer();
-      result.push(new Token("Open Palm Mute", char));
-    } else if (!ignore && isClosePalmMute(char)) {
-      checkBuffer();
-      result.push(new Token("Close Palm Mute", char));
+      result.push(new Token("Palm Mute", char));
     } else if (!ignore && isOpenBeatLength(char)) {
       checkBuffer();
       buffer.push(char);
@@ -275,10 +266,10 @@ function tokenize(text) {
         } else if(/\{\d+(?:\.\d+)*?\}/.test(bufferString)) {
           result.push(new Token("Beat Length", bufferString));
           buffer = [];
-        } else if(/S(?:\d+,)+\d+/.test(bufferString)) {
+        } else if(/S(?:\d+,)+\d+/i.test(bufferString)) {
           result.push(new Token("String Chord", bufferString.substring(1).split(",")));
           buffer = [];
-        } else if(/S(?:\d+-)+\d+/.test(bufferString)) {
+        } else if(/S(?:\d+-)+\d+/i.test(bufferString)) {
           result.push(new Token("String Chord Range", bufferString.substring(1).split("-")));
           buffer = [];
         } else if(/(?:\d+,)+\d+/.test(bufferString)) {
@@ -290,7 +281,7 @@ function tokenize(text) {
         } else if(/(?:[A-G][#b]*)+/.test(bufferString)){
           result.push(new Token("Tuning", bufferString));
           buffer = [];
-        } else if(/S\d+/.test(bufferString)){
+        } else if(/S\d+/i.test(bufferString)){
           result.push(new Token("String", [bufferString.substring(1)]));
           buffer = [];
         } else if(/\d+/.test(bufferString)){

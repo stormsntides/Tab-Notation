@@ -36,5 +36,6 @@ svg text {
 }
 
 .draggable {
-	cursor: move;
+	pointer-events: bounding-box;
+	cursor: pointer;
 }

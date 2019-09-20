@@ -17,35 +17,46 @@ function loadSettings(){
 loadSettings();
 
 function SVGbuilder(){
-	this.svg = [];
+	var svg = [];
 	this.addNewSVG = function(){
 		let height = (this.strings.tuning.length + 1) * SETTINGS.lineSpacing;
-		this.svg.push("<svg width='200em' height='" + ((height * 2) / 10) + "em' viewbox='0 0 1000 " + height + "' version='1.1' xmlns='http://www.w3.org/2000/svg' onload='makeDraggable(evt)'><rect fill='white' x='0' y='0' width='1000' height='" + height + "'/>");
+		svg.push("<svg width='200em' height='" + ((height * 2) / 10) + "em' viewbox='0 0 1000 " + height + "' version='1.1' xmlns='http://www.w3.org/2000/svg' onload='makeDraggable(evt)'><rect fill='white' x='0' y='0' width='1000' height='" + height + "'/>");
 	};
 	this.closeAndGetSVG = function(){
 		this.closeSVG();
-		return this.svg.join("");
+		return svg.join("");
 	};
-	this.tabs = {
-    text: [],
-		markers: [SETTINGS.charSize * 4],
-		addMarker: function(numChars=3){
-			let last = this.markers.length - 1;
-			this.markers.push(this.markers[last] + (SETTINGS.charSize * numChars));
-		},
-		lastMarker: function(){
-			return this.markers[this.markers.length - 1];
-		},
-    addTab: function(tag, attrs, text){
-      if(tag === "text"){
-        this.text.push("<text data-type='" + attrs.type + "' class='" + attrs.classes + "' fill='" + attrs.fill + "' transform='translate(" + attrs.translate.x + ", " + attrs.translate.y + ")'>" + text + "</text>");
-      } else if(tag === "path"){
-        this.text.push("<path data-type='" + attrs.type + "' class='" + attrs.classes + "' fill='" + attrs.fill + "' stroke='" + attrs.stroke.color + "' stroke-width='" + attrs.stroke.width + "' d='" + attrs.stroke.path + "' transform='translate(" + attrs.translate.x + ", " + attrs.translate.y + ")'/>");
+	this.tabs = new function() {
+    var text = [];
+    this.markers = new function(){
+      var markerList = [SETTINGS.charSize * 4];
+      this.add = function(numChars=3){
+        let last = markerList.length - 1;
+        markerList.push(markerList[last] + (SETTINGS.charSize * numChars));
+      };
+      this.last = function(){
+        return markerList[markerList.length - 1];
+      };
+      this.clear = function(){
+        markerList = [SETTINGS.charSize * 4];
       }
-    },
-    getHTML: function(){
-      return "<g name='tabs'>" + this.text.join("") + "</g>";
-    }
+    };
+    this.add = function(options){
+      if(options.tag === "text"){
+        text.push("<text data-type='" + options.type + "' class='" + options.classes + "' fill='" + options.fill + "' transform='translate(" + options.translate.x + ", " + options.translate.y + ")'>" + options.text + "</text>");
+      } else if(options.tag === "path"){
+        text.push("<path data-type='" + options.type + "' class='" + options.classes + "' fill='" + options.fill + "' stroke='" + options.stroke.color + "' stroke-width='" + options.stroke.width + "' d='" + options.stroke.path + "' transform='translate(" + options.translate.x + ", " + options.translate.y + ")'/>");
+      } else if(!options.tag){
+        text.push(options.text);
+      }
+    };
+    this.getHTML = function(){
+      return "<g name='tabs'>" + text.join("") + "</g>";
+    };
+    this.clear = function(){
+      text = [];
+      this.markers.clear();
+    };
 	};
 	this.strings = {
 		tuning: [],
@@ -65,14 +76,14 @@ function SVGbuilder(){
 		}
 	};
 	this.closeSVG = function(){
-		if(this.svg.length > 0){
-			let last = this.svg.length - 1;
-			this.svg[last] += this.strings.getHTML() + this.tabs.getHTML() + "</svg>";
+		if(svg.length > 0){
+			let last = svg.length - 1;
+			svg[last] += this.strings.getHTML() + this.tabs.getHTML() + "</svg>";
 			this.clear();
 		}
 	};
 	this.clear = function(){
-		this.tabs.text = [];
+		this.tabs.clear();
 		this.strings.tuning = [];
 		this.strings.toWrite = [];
 	};
