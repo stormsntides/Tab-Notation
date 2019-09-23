@@ -1,5 +1,5 @@
 const SETTINGS = {
-  charSize: 6,
+  charRef: undefined,
   lineSpacing: 12,
   clamp: function(n, min, max){
     return Math.min(Math.max(n, min), max);
@@ -11,7 +11,7 @@ function loadSettings(){
     document.body.insertAdjacentHTML("afterBegin", "<span id='tn-check-width'>0</span>");
   }
   fontWidthChar = document.getElementById("tn-check-width");
-  SETTINGS.charSize = fontWidthChar.getBoundingClientRect().width;
+  SETTINGS.charRef = fontWidthChar.getBoundingClientRect();
 };
 
 loadSettings();
@@ -29,16 +29,16 @@ function SVGbuilder(){
 	this.tabs = new function() {
     var text = [];
     this.markers = new function(){
-      var markerList = [SETTINGS.charSize * 4];
+      var markerList = [SETTINGS.charRef.width * 4];
       this.add = function(numChars=3){
         let last = markerList.length - 1;
-        markerList.push(markerList[last] + (SETTINGS.charSize * numChars));
+        markerList.push(markerList[last] + (SETTINGS.charRef.width * numChars));
       };
       this.last = function(){
         return markerList[markerList.length - 1];
       };
       this.clear = function(){
-        markerList = [SETTINGS.charSize * 4];
+        markerList = [SETTINGS.charRef.width * 4];
       }
     };
     this.add = function(options){
@@ -63,7 +63,7 @@ function SVGbuilder(){
 		toWrite: [],
 		getHTML: function(){
 			// set up the string lines
-      let lines = "<path fill='transparent' stroke='gray' stroke-width='0.5' d='m " + (SETTINGS.charSize * 3) + " " + SETTINGS.lineSpacing + ((" h 2000 m -2000 " + SETTINGS.lineSpacing).repeat(this.tuning.length)) + "'/>";
+      let lines = "<path fill='transparent' stroke='gray' stroke-width='0.5' d='m " + (SETTINGS.charRef.width * 3) + " " + SETTINGS.lineSpacing + ((" h 2000 m -2000 " + SETTINGS.lineSpacing).repeat(this.tuning.length)) + "'/>";
       // set up note grouping and iterate through each note
 			let notes = "<g name='notes'>";
 			this.tuning.forEach(function(t, i){
@@ -72,7 +72,7 @@ function SVGbuilder(){
 			});
 			notes += "</g>";
       // separate notes and string lines by a barline
-			return notes + "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (SETTINGS.charSize * 3) + " 0 v " + ((this.tuning.length + 1) * SETTINGS.lineSpacing) + "'/>" + lines;
+			return notes + "<path fill='transparent' stroke='black' stroke-width='1' d='m " + (SETTINGS.charRef.width * 3) + " 0 v " + ((this.tuning.length + 1) * SETTINGS.lineSpacing) + "'/>" + lines;
 		}
 	};
 	this.closeSVG = function(){

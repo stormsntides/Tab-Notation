@@ -31,17 +31,14 @@ function rearrangeNodes(movedEle){
 			let chTrf = child.transform.baseVal.getItem(0);
 			let isXless = meTrf.matrix.e < chTrf.matrix.e;
 			let isYless = meTrf.matrix.f < chTrf.matrix.f;
-			// check which group moved ele is currently in
-			if(groupName === "notes" && isYless){
+			// check which group moved ele is currently in; if notes, check if y is less; if tabs, check if x is less
+			if((groupName === "notes" && isYless) || (groupName === "tabs" && isXless)){
 				eleGroup.insertBefore(movedEle, child);
-				break;
-			} else if(groupName === "tabs" && isXless){
-				eleGroup.insertBefore(movedEle, child);
-				// adjust string position so that it is aligned with the nearest string
-				meTrf.setTranslate(meTrf.matrix.e, nearestString(movedEle) * SETTINGS.lineSpacing);
 				break;
 			}
 		}
+		// adjust string position so that it is aligned with the nearest string
+		meTrf.setTranslate(meTrf.matrix.e, nearestString(movedEle) * SETTINGS.lineSpacing);
 		movedEle.classList.remove("moved");
 	}
 }
@@ -82,11 +79,11 @@ function makeDraggable(evt) {
     // set boundaries so that elements can't "escape" svg
     var brect = svg.getBoundingClientRect();
     var bbox = selectedElement.getBBox();
-    min.x = 0 - bbox.x;
+		console.log(bbox);
+    min.x = 0;
     max.x = brect.width - bbox.x - bbox.width;
-    min.y = SETTINGS.lineSpacing - (bbox.y + bbox.height / 2);
-    max.y = (brect.height - SETTINGS.lineSpacing) - (bbox.y + bbox.height / 2);
-		console.log(max.y);
+    min.y = SETTINGS.lineSpacing - (bbox.y + SETTINGS.charRef.height / 2);
+    max.y = (selectedElement.closest("svg").querySelector("[name='notes']").children.length * SETTINGS.lineSpacing) - (bbox.y + bbox.height - SETTINGS.charRef.height / 2);
 
     // make sure the first transform on the element is a translate transform
     var transforms = selectedElement.transform.baseVal;

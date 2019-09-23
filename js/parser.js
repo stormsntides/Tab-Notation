@@ -88,8 +88,8 @@ function parseTabs(text){
 				let largeNum = tkn.value[0].length < tkn.value[1].length ? tkn.value[1].length : tkn.value[0].length;
 
 				// x1 is the x position of the top number, x2 is the x position of the bottom number
-				let x1 = SETTINGS.charSize + builder.tabs.markers.last() + (tkn.value[0].length < tkn.value[1].length ? (diff * SETTINGS.charSize) : 0);
-				let x2 = SETTINGS.charSize + builder.tabs.markers.last() + (tkn.value[1].length < tkn.value[0].length ? (diff * SETTINGS.charSize) : 0);
+				let x1 = SETTINGS.charRef.width + builder.tabs.markers.last() + (tkn.value[0].length < tkn.value[1].length ? (diff * SETTINGS.charRef.width) : 0);
+				let x2 = SETTINGS.charRef.width + builder.tabs.markers.last() + (tkn.value[1].length < tkn.value[0].length ? (diff * SETTINGS.charRef.width) : 0);
 
 				// get the midpoint between the top and bottom strings
 				let half = (((builder.strings.tuning.length + 1) * SETTINGS.lineSpacing) / 2);
@@ -99,7 +99,7 @@ function parseTabs(text){
 				builder.tabs.add({ text: "<text x='" + x1 + "' y='" + (half - SETTINGS.lineSpacing) + "'>" + tkn.value[0] + "</text>" });
 				builder.tabs.add({ text: "<text x='" + x2 + "' y='" + (half + SETTINGS.lineSpacing) + "'>" + tkn.value[1] + "</text>" });
 				// create divider line between the numbers; close out number grouping
-				builder.tabs.add({ text: "<path fill='transparent' stroke='black' stroke-width='1' d='m " + ((x1 < x2 ? x1 : x2) - SETTINGS.charSize) + " " + half + " h " + ((largeNum * SETTINGS.charSize * 2) + (SETTINGS.charSize * 2)) + "'/>" });
+				builder.tabs.add({ text: "<path fill='transparent' stroke='black' stroke-width='1' d='m " + ((x1 < x2 ? x1 : x2) - SETTINGS.charRef.width) + " " + half + " h " + ((largeNum * SETTINGS.charRef.width * 2) + (SETTINGS.charRef.width * 2)) + "'/>" });
 				builder.tabs.add({ text: "</g>" });
 
 				// add enough space to account for each digit's width so that spacing is uniform between time signature and tabs
@@ -184,11 +184,11 @@ function parseTabs(text){
 		vals.sort(function(a, b){ return a.str - b.str; });
 
 		if(vals.length > 1){
-			builder.tabs.add({ text: "<g data-type='tabchord' class='draggable restrict-y' transform='translate(" + builder.tabs.markers.last() + ", " + SETTINGS.lineSpacing + ")'>" });
+			builder.tabs.add({ text: "<g data-type='tabchord' class='draggable' transform='translate(" + builder.tabs.markers.last() + ", " + (vals[0].str * SETTINGS.lineSpacing) + ")'>" });
 			// loop through all notes that are being written to
 			for(let v = 0; v < vals.length; v++){
 				// xMod centers single chars in their tab position
-				let xMod = vals[v].tab.length === 1 ? SETTINGS.charSize / 2 : 0;
+				let xMod = vals[v].tab.length === 1 ? SETTINGS.charRef.width / 2 : 0;
 				builder.tabs.add({
 					tag: "text",
 					type: "tab",
@@ -196,7 +196,7 @@ function parseTabs(text){
 					fill: "black",
 					translate: {
 						x: xMod,
-						y: (vals[v].str - 1) * SETTINGS.lineSpacing
+						y: (vals[v].str - vals[0].str) * SETTINGS.lineSpacing
 					},
 					text: vals[v].tab
 				});
@@ -206,7 +206,7 @@ function parseTabs(text){
 			// loop through all notes that are being written to
 			for(let v = 0; v < vals.length; v++){
 				// xMod centers single chars in their tab position
-				let xMod = vals[v].tab.length === 1 ? SETTINGS.charSize / 2 : 0;
+				let xMod = vals[v].tab.length === 1 ? SETTINGS.charRef.width / 2 : 0;
 				builder.tabs.add({
 					tag: "text",
 					type: "tab",
@@ -257,7 +257,7 @@ function parseTabs(text){
 						path: "m 0 0 v " + ((builder.strings.tuning.length + 1) * SETTINGS.lineSpacing)
 					},
 					translate: {
-						x: builder.tabs.markers.last() + SETTINGS.charSize,
+						x: builder.tabs.markers.last() + SETTINGS.charRef.width,
 						y: 0
 					}
 				});
@@ -272,10 +272,10 @@ function parseTabs(text){
 					stroke: {
 						color: "red",
 						width: 1,
-						path: "m 0 0 l " + (SETTINGS.charSize * 2) + " " + ((smallestIndex - largestIndex) * SETTINGS.lineSpacing - SETTINGS.lineSpacing / 2)
+						path: "m 0 0 l " + (SETTINGS.charRef.width * 2) + " " + ((smallestIndex - largestIndex) * SETTINGS.lineSpacing - SETTINGS.lineSpacing / 2)
 					},
 					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charSize,
+						x: builder.tabs.markers.last() - SETTINGS.charRef.width,
 						y: largestIndex * SETTINGS.lineSpacing + SETTINGS.lineSpacing / 4
 					}
 				});
@@ -290,10 +290,10 @@ function parseTabs(text){
 					stroke: {
 						color: "red",
 						width: 1,
-						path: "m 0 0 l " + (SETTINGS.charSize * 2) + " " + ((largestIndex - smallestIndex) * SETTINGS.lineSpacing + SETTINGS.lineSpacing / 2)
+						path: "m 0 0 l " + (SETTINGS.charRef.width * 2) + " " + ((largestIndex - smallestIndex) * SETTINGS.lineSpacing + SETTINGS.lineSpacing / 2)
 					},
 					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charSize,
+						x: builder.tabs.markers.last() - SETTINGS.charRef.width,
 						y: smallestIndex * SETTINGS.lineSpacing - SETTINGS.lineSpacing / 4
 					}
 				});
@@ -308,10 +308,10 @@ function parseTabs(text){
 					stroke: {
 						color: "red",
 						width: 1,
-						path: "m 0 0 q " + SETTINGS.charSize + " 0 " + SETTINGS.charSize + " " + (-1 * (SETTINGS.lineSpacing / 2)) + " l 2 1.5"
+						path: "m 0 0 q " + SETTINGS.charRef.width + " 0 " + SETTINGS.charRef.width + " " + (-1 * (SETTINGS.lineSpacing / 2)) + " l 2 1.5"
 					},
 					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charSize / 2,
+						x: builder.tabs.markers.last() - SETTINGS.charRef.width / 2,
 						y: largestIndex * SETTINGS.lineSpacing + SETTINGS.lineSpacing / 4
 					}
 				});
@@ -326,10 +326,10 @@ function parseTabs(text){
 					stroke: {
 						color: "red",
 						width: 1,
-						path: "m 0 0 q " + SETTINGS.charSize + " 0 " + SETTINGS.charSize + " " + (SETTINGS.lineSpacing / 2) + " l 2 -1.5"
+						path: "m 0 0 q " + SETTINGS.charRef.width + " 0 " + SETTINGS.charRef.width + " " + (SETTINGS.lineSpacing / 2) + " l 2 -1.5"
 					},
 					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charSize / 2,
+						x: builder.tabs.markers.last() - SETTINGS.charRef.width / 2,
 						y: largestIndex * SETTINGS.lineSpacing - SETTINGS.lineSpacing / 4
 					}
 				});
@@ -342,7 +342,7 @@ function parseTabs(text){
 					classes: "draggable",
 					fill: "blue",
 					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charSize / 2,
+						x: builder.tabs.markers.last() - SETTINGS.charRef.width / 2,
 						y: largestIndex * SETTINGS.lineSpacing
 					},
 					text: "h"
@@ -356,7 +356,7 @@ function parseTabs(text){
 					classes: "draggable",
 					fill: "blue",
 					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charSize / 2,
+						x: builder.tabs.markers.last() - SETTINGS.charRef.width / 2,
 						y: largestIndex * SETTINGS.lineSpacing
 					},
 					text: "p"
@@ -370,7 +370,7 @@ function parseTabs(text){
 					classes: "draggable",
 					fill: "blue",
 					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charSize / 2,
+						x: builder.tabs.markers.last() - SETTINGS.charRef.width / 2,
 						y: largestIndex * SETTINGS.lineSpacing
 					},
 					text: "t"
