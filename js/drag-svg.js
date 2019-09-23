@@ -1,40 +1,48 @@
+function isOverlappingX(check, against){
+	let a = against.getBBox();
+	let c = check.getBBox();
+	let trim = c.width / 4;
+	a.x += against.transform.baseVal.getItem(0).matrix.e;
+	c.x += check.transform.baseVal.getItem(0).matrix.e + trim;
+	c.width -= trim * 2;
+	return c.x <= a.x + a.width && c.x >= a.x || a.x <= c.x + c.width && a.x >= c.x;
+}
+
+function nearestString(check){
+	let noteGroup = check.closest("svg").querySelector("[name='notes']");
+	let y = check.transform.baseVal.getItem(0).matrix.f;
+	return SETTINGS.clamp(Math.round(y / SETTINGS.lineSpacing), 1, noteGroup.children.length);
+}
+
 function rearrangeNodes(movedEle){
 	if(movedEle && movedEle.classList.contains("moved")){
 		let meTrf = movedEle.transform.baseVal.getItem(0);
 		// get the parent note group and loop through each child
 		let eleGroup = movedEle.parentNode;
 		let groupName = eleGroup.getAttribute("name");
-		// remove element from the parent node so that it isn't compared with itself in the group
-		eleGroup.removeChild(movedEle);
+		// move element to the end of the parent node so that it isn't compared against itself until the end
+		eleGroup.append(movedEle);
+		// begin checking y if x overlaps; if child x becomes greater than group x, stop checking y and insert moved node
+		let checkY = false;
+		let groupX = 0;
 		for(let ci = 0; ci < eleGroup.children.length; ci++){
 			let child = eleGroup.children[ci];
 			// get the translation values for each element
 			let chTrf = child.transform.baseVal.getItem(0);
-			// insert the node before the child if y value is lesser in note group or x value is lesser in tabs group
 			let isXless = meTrf.matrix.e < chTrf.matrix.e;
 			let isYless = meTrf.matrix.f < chTrf.matrix.f;
-			if((groupName === "notes" && isYless) || (groupName === "tabs" && isXless)){
-				movedEle.classList.remove("moved");
+			// check which group moved ele is currently in
+			if(groupName === "notes" && isYless){
 				eleGroup.insertBefore(movedEle, child);
+				break;
+			} else if(groupName === "tabs" && isXless){
+				eleGroup.insertBefore(movedEle, child);
+				// adjust string position so that it is aligned with the nearest string
+				meTrf.setTranslate(meTrf.matrix.e, nearestString(movedEle) * SETTINGS.lineSpacing);
 				break;
 			}
 		}
-		// if moved element wasn't shifted in group, move to the end
-		if(movedEle.classList.contains("moved")){
-			movedEle.classList.remove("moved");
-			eleGroup.append(movedEle);
-		}
-
-		/*
-		A test that gets all of the siblings before the element; could be used before moving to
-		figure out where in the raw text the tab is
-
-		let totalTabs = 0;
-		while((test = test.previousSibling) !== null){
-			if(test.dataset["type"] === "tab"){totalTabs += 1;}
-		}
-		console.log(totalTabs);
-		*/
+		movedEle.classList.remove("moved");
 	}
 }
 
@@ -76,8 +84,9 @@ function makeDraggable(evt) {
     var bbox = selectedElement.getBBox();
     min.x = 0 - bbox.x;
     max.x = brect.width - bbox.x - bbox.width;
-    min.y = 0 - bbox.y;
-    max.y = brect.height - bbox.y - bbox.height;
+    min.y = SETTINGS.lineSpacing - (bbox.y + bbox.height / 2);
+    max.y = (brect.height - SETTINGS.lineSpacing) - (bbox.y + bbox.height / 2);
+		console.log(max.y);
 
     // make sure the first transform on the element is a translate transform
     var transforms = selectedElement.transform.baseVal;

@@ -124,7 +124,7 @@ function parseTabs(text){
         break;
 			case "String Chord Range":
 				builder.strings.toWrite = [];
-				let df = tkn.value[0] - tkn.value[1];
+				let df = parseInt(tkn.value[0]) - parseInt(tkn.value[1]);
 				for(let m = 0; m <= Math.abs(df); m++){
 					builder.strings.toWrite.push(tkn.value[0] - (m * Math.sign(df)));
 				}
@@ -167,29 +167,59 @@ function parseTabs(text){
 
 	function addTabs(tabToken){
 		let tabs = tabToken.value;
+		let strings = builder.strings.toWrite;
 
+		// get largest number of digits a tab contains
 		let numDigits = 0;
 		tabs.forEach(function(v){ numDigits = numDigits < v.length ? v.length : numDigits; });
 
-		// loop through all notes that are being written to
-		for(let t = 0; t < builder.strings.toWrite.length; t++){
-			// maxT denotes the max value t can be when get token values
-			let maxT = t >= tabs.length ? tabs.length - 1 : t;
-			// xMod centers single chars in their tab position
-			let xMod = tabs[maxT].length === 1 ? SETTINGS.charSize / 2 : 0;
-			builder.tabs.add({
-				tag: "text",
-				type: tabToken.type.replace(" ", "").toLowerCase(),
-				classes: "draggable",
-				fill: "black",
-				translate: {
-					x: builder.tabs.markers.last() + xMod,
-					y: builder.strings.toWrite[t] * SETTINGS.lineSpacing
-				},
-				text: tabs[maxT]
-			});
+		// create array of objects to combine tabs and strings
+		let vals = [];
+		for(let s = 0; s < strings.length; s++){
+			// max denotes the max value s can be when getting token values
+			let max = s >= tabs.length ? tabs.length - 1 : s;
+			vals.push({ str: strings[s], tab: tabs[max] });
 		}
+		// sort tabs by string
+		vals.sort(function(a, b){ return a.str - b.str; });
 
+		if(vals.length > 1){
+			builder.tabs.add({ text: "<g data-type='tabchord' class='draggable restrict-y' transform='translate(" + builder.tabs.markers.last() + ", " + SETTINGS.lineSpacing + ")'>" });
+			// loop through all notes that are being written to
+			for(let v = 0; v < vals.length; v++){
+				// xMod centers single chars in their tab position
+				let xMod = vals[v].tab.length === 1 ? SETTINGS.charSize / 2 : 0;
+				builder.tabs.add({
+					tag: "text",
+					type: "tab",
+					classes: "",
+					fill: "black",
+					translate: {
+						x: xMod,
+						y: (vals[v].str - 1) * SETTINGS.lineSpacing
+					},
+					text: vals[v].tab
+				});
+			}
+			builder.tabs.add({ text: "</g>" });
+		} else {
+			// loop through all notes that are being written to
+			for(let v = 0; v < vals.length; v++){
+				// xMod centers single chars in their tab position
+				let xMod = vals[v].tab.length === 1 ? SETTINGS.charSize / 2 : 0;
+				builder.tabs.add({
+					tag: "text",
+					type: "tab",
+					classes: "draggable",
+					fill: "black",
+					translate: {
+						x: builder.tabs.markers.last() + xMod,
+						y: vals[v].str * SETTINGS.lineSpacing
+					},
+					text: vals[v].tab
+				});
+			}
+		}
 		builder.tabs.markers.add(3 * options.beatLength);
 	}
 
