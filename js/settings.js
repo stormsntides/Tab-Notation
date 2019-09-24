@@ -3,6 +3,11 @@ const SETTINGS = {
   lineSpacing: 12,
   clamp: function(n, min, max){
     return Math.min(Math.max(n, min), max);
+  },
+  nearestString: function(check){
+    let noteGroup = check.closest("svg").querySelector("[name='notes']");
+  	let y = check.transform.baseVal.getItem(0).matrix.f;
+  	return this.clamp(Math.round(y / this.lineSpacing), 1, noteGroup.children.length);
   }
 };
 

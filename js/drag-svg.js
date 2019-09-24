@@ -1,19 +1,3 @@
-function isOverlappingX(check, against){
-	let a = against.getBBox();
-	let c = check.getBBox();
-	let trim = c.width / 4;
-	a.x += against.transform.baseVal.getItem(0).matrix.e;
-	c.x += check.transform.baseVal.getItem(0).matrix.e + trim;
-	c.width -= trim * 2;
-	return c.x <= a.x + a.width && c.x >= a.x || a.x <= c.x + c.width && a.x >= c.x;
-}
-
-function nearestString(check){
-	let noteGroup = check.closest("svg").querySelector("[name='notes']");
-	let y = check.transform.baseVal.getItem(0).matrix.f;
-	return SETTINGS.clamp(Math.round(y / SETTINGS.lineSpacing), 1, noteGroup.children.length);
-}
-
 function rearrangeNodes(movedEle){
 	if(movedEle && movedEle.classList.contains("moved")){
 		let meTrf = movedEle.transform.baseVal.getItem(0);
@@ -38,7 +22,7 @@ function rearrangeNodes(movedEle){
 			}
 		}
 		// adjust string position so that it is aligned with the nearest string
-		meTrf.setTranslate(meTrf.matrix.e, nearestString(movedEle) * SETTINGS.lineSpacing);
+		meTrf.setTranslate(meTrf.matrix.e, SETTINGS.nearestString(movedEle) * SETTINGS.lineSpacing);
 		movedEle.classList.remove("moved");
 	}
 }
@@ -79,7 +63,6 @@ function makeDraggable(evt) {
     // set boundaries so that elements can't "escape" svg
     var brect = svg.getBoundingClientRect();
     var bbox = selectedElement.getBBox();
-		console.log(bbox);
     min.x = 0;
     max.x = brect.width - bbox.x - bbox.width;
     min.y = SETTINGS.lineSpacing - (bbox.y + SETTINGS.charRef.height / 2);
@@ -133,7 +116,7 @@ function makeDraggable(evt) {
     if(selectedElement){
       selectedElement.classList.add('moved');
       rearrangeNodes(selectedElement);
-      // testTrigger(selectedElement);
+      testTrigger(selectedElement);
       selectedElement = false;
     }
   }

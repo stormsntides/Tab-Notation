@@ -1,11 +1,51 @@
 function testTrigger(isTriggered){
 	if(isTriggered){
 		console.log("Test Trigger function was triggered!");
-		// convertToText(isTriggered);
+		convertToText(isTriggered);
 	}
 }
 
+function convertToText(ele){
+	let tn = ele.closest(".tn-container");
 
+	let text = "";
+	tn.querySelectorAll("svg").forEach(function(svg){
+		let notes = svg.querySelector("g[name='notes']");
+		for(let ni = 0; ni < notes.children.length; ni++){
+			text += notes.children[ni].textContent;
+		}
+
+		text += " ";
+
+		let tabs = svg.querySelector("g[name='tabs']");
+		for(let ti = 0; ti < tabs.children.length; ti++){
+			let child = tabs.children[ti];
+			switch(child.dataset["type"]){
+				case "hammeron":
+				case "pulloff":
+				case "fingertap":
+				case "tab":
+					let tstr = "s" + SETTINGS.nearestString(child) + " ";
+					tstr += child.textContent + " ";
+					text += tstr;
+					break;
+				case "tabchord":
+					let tcstr = [];
+					let tctxt = [];
+					let parentY = child.transform.baseVal.getItem(0).matrix.f;
+					for(let ci = 0; ci < child.children.length; ci++){
+						let childY = child.children[ci].transform.baseVal.getItem(0).matrix.f;
+						tcstr.push(SETTINGS.clamp(Math.round((parentY + childY) / SETTINGS.lineSpacing), 1, notes.children.length));
+						tctxt.push(child.children[ci].textContent);
+					}
+					text += "s" + tcstr.join(",") + " " + tctxt.join(",") + " ";
+					break;
+				default: break;
+			}
+		}
+		console.log(text);
+	});
+}
 
 // function convertToText(ele){
 // 	let tn;
