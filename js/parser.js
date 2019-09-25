@@ -17,17 +17,47 @@ function convertToText(ele){
 
 		text += " ";
 
+		let prevStr = "";
+		let tabBuff = "";
 		let tabs = svg.querySelector("g[name='tabs']");
 		for(let ti = 0; ti < tabs.children.length; ti++){
 			let child = tabs.children[ti];
 			switch(child.dataset["type"]){
+				case "timesignature":
+					let textNodes = child.querySelectorAll("text");
+					text += textNodes[0].textContent + ":" + textNodes[1].textContent + " ";
+					break;
+				case "palmmute":
+					tabBuff += "m ";
+					break;
+				case "slideup":
+					tabBuff += "/ ";
+					break;
+				case "slidedown":
+					tabBuff += "\\ ";
+					break;
+				case "bendup":
+					tabBuff += "^ ";
+					break;
+				case "benddown":
+					tabBuff += "v ";
+					break;
 				case "hammeron":
 				case "pulloff":
-				case "fingertap":
+				case "fingertap":;
+					tabBuff += child.textContent + " ";
+					break;
+				case "barline":
+					text += "| ";
+					break;
 				case "tab":
 					let tstr = "s" + SETTINGS.nearestString(child) + " ";
-					tstr += child.textContent + " ";
-					text += tstr;
+					if(tstr !== prevStr){
+						text += tstr;
+						prevStr = tstr;
+					}
+					text += tabBuff + child.textContent + " ";
+					tabBuff = "";
 					break;
 				case "tabchord":
 					let tcstr = [];
@@ -38,7 +68,14 @@ function convertToText(ele){
 						tcstr.push(SETTINGS.clamp(Math.round((parentY + childY) / SETTINGS.lineSpacing), 1, notes.children.length));
 						tctxt.push(child.children[ci].textContent);
 					}
-					text += "s" + tcstr.join(",") + " " + tctxt.join(",") + " ";
+
+					let joinedStr = "s" + tcstr.join(",");
+					if(joinedStr !== prevStr){
+						text += joinedStr + " ";
+						prevStr = joinedStr;
+					}
+					text += tabBuff + tctxt.join(",") + " ";
+					tabBuff = "";
 					break;
 				default: break;
 			}
@@ -46,54 +83,6 @@ function convertToText(ele){
 		console.log(text);
 	});
 }
-
-// function convertToText(ele){
-// 	let tn;
-// 	if(ele.classList.contains("tn-container")){
-// 		tn = ele;
-// 	} else {
-// 		tn = ele.closest(".tn-container");
-// 	}
-//
-// 	let text = "";
-// 	let trfre = /((?:\d+\.){0,1}\d+)/g;
-// 	tn.querySelectorAll("svg").forEach(function(svg){
-// 		let notes = Array.from(svg.querySelectorAll("g[name='notes'] > [data-type='note']"));
-// 		// create easier to work with objects
-// 		for(let ni = 0; ni < notes.length; ni++){
-// 			let trf = notes[ni].getAttribute("transform").match(trfre);
-// 			notes[ni] = { note: notes[ni].textContent, x: parseFloat(trf[0]), y: parseFloat(trf[1]) };
-// 		}
-// 		// sort notes using y position
-// 		notes.sort(function(a, b){ return a.y - b.y; });
-//
-// 		// get tabs and sort them using x position
-// 		let tabs = Array.from(svg.querySelectorAll("g[name='tabs'] > *"));
-// 		// create easier to work with objects
-// 		for(let ti = 0; ti < tabs.length; ti++){
-// 			let trf = tabs[ti].getAttribute("transform").match(trfre);
-// 			tabs[ti] = { type: tabs[ti].dataset["type"], tab: tabs[ti].textContent, x: parseFloat(trf[0]), y: parseFloat(trf[1]) };
-// 		}
-// 		// sort notes using x position
-// 		tabs.sort(function(a, b){ return a.x - b.x; });
-// 		// normalize x to charSize
-// 		tabs.map(function(t){ return Math.round(t.x / SETTINGS.charSize) * SETTINGS.charSize; });
-//
-// 		let tabText = "";
-// 		let temp = "";
-// 		tabs.forEach(function(tb){
-// 			let yPos = SETTINGS.clamp(Math.round(tb.y / SETTINGS.lineSpacing), 1, builder.strings.tuning.length);
-// 			if(temp.indexOf(yPos) >= 0){
-// 				if(tb.type === "tab"){
-// 					tabText += tb.tab + " ";
-// 				}
-// 			}
-// 		});
-//
-// 		console.log(notes);
-// 		console.log(newTabs);
-// 	});
-// }
 
 function parseTabs(text){
   // tokenize text and create array to generate string tabs into
@@ -128,16 +117,16 @@ function parseTabs(text){
 				let largeNum = tkn.value[0].length < tkn.value[1].length ? tkn.value[1].length : tkn.value[0].length;
 
 				// x1 is the x position of the top number, x2 is the x position of the bottom number
-				let x1 = SETTINGS.charRef.width + builder.tabs.markers.last() + (tkn.value[0].length < tkn.value[1].length ? (diff * SETTINGS.charRef.width) : 0);
-				let x2 = SETTINGS.charRef.width + builder.tabs.markers.last() + (tkn.value[1].length < tkn.value[0].length ? (diff * SETTINGS.charRef.width) : 0);
+				let x1 = tkn.value[0].length < tkn.value[1].length ? (diff * SETTINGS.charRef.width) : 0;
+				let x2 = tkn.value[1].length < tkn.value[0].length ? (diff * SETTINGS.charRef.width) : 0;
 
 				// get the midpoint between the top and bottom strings
 				let half = (((builder.strings.tuning.length + 1) * SETTINGS.lineSpacing) / 2);
 				// size text so that it's larger than normal tab font
-				builder.tabs.add({ text: "<g data-type='" + (tkn.type.replace(" ", "").toLowerCase()) + "' class='draggable restrict-y' font-size='2em'>" });
+				builder.tabs.add({ text: "<g data-type='" + (tkn.type.replace(" ", "").toLowerCase()) + "' class='draggable restrict-y' font-size='2em' transform='translate(" + (SETTINGS.charRef.width + builder.tabs.markers.last()) + ", 0)'>" });
 				// place the numbers according to the x position at just above/below the half mark; double scaling size
-				builder.tabs.add({ text: "<text x='" + x1 + "' y='" + (half - SETTINGS.lineSpacing) + "'>" + tkn.value[0] + "</text>" });
-				builder.tabs.add({ text: "<text x='" + x2 + "' y='" + (half + SETTINGS.lineSpacing) + "'>" + tkn.value[1] + "</text>" });
+				builder.tabs.add({ text: "<text dx='" + x1 + "' dy='" + (half - SETTINGS.lineSpacing) + "'>" + tkn.value[0] + "</text>" });
+				builder.tabs.add({ text: "<text dx='" + x2 + "' dy='" + (half + SETTINGS.lineSpacing) + "'>" + tkn.value[1] + "</text>" });
 				// create divider line between the numbers; close out number grouping
 				builder.tabs.add({ text: "<path fill='transparent' stroke='black' stroke-width='1' d='m " + ((x1 < x2 ? x1 : x2) - SETTINGS.charRef.width) + " " + half + " h " + ((largeNum * SETTINGS.charRef.width * 2) + (SETTINGS.charRef.width * 2)) + "'/>" });
 				builder.tabs.add({ text: "</g>" });
