@@ -1,11 +1,4 @@
-function testTrigger(isTriggered){
-	if(isTriggered){
-		console.log("Test Trigger function was triggered!");
-		convertToText(isTriggered);
-	}
-}
-
-function convertToText(ele){
+function unparseTabs(ele){
 	let tn = ele.closest(".tn-container");
 
 	let text = "";
@@ -19,6 +12,7 @@ function convertToText(ele){
 
 		let prevStr = "";
 		let tabBuff = "";
+		let palmBuff = "";
 		let tabs = svg.querySelector("g[name='tabs']");
 		for(let ti = 0; ti < tabs.children.length; ti++){
 			let child = tabs.children[ti];
@@ -28,7 +22,7 @@ function convertToText(ele){
 					text += textNodes[0].textContent + ":" + textNodes[1].textContent + " ";
 					break;
 				case "palmmute":
-					tabBuff += "m ";
+					palmBuff = "m ";
 					break;
 				case "slideup":
 					tabBuff += "/ ";
@@ -56,8 +50,9 @@ function convertToText(ele){
 						text += tstr;
 						prevStr = tstr;
 					}
-					text += tabBuff + child.textContent + " ";
+					text += tabBuff + palmBuff + child.textContent + " ";
 					tabBuff = "";
+					palmBuff = "";
 					break;
 				case "tabchord":
 					let tcstr = [];
@@ -74,14 +69,15 @@ function convertToText(ele){
 						text += joinedStr + " ";
 						prevStr = joinedStr;
 					}
-					text += tabBuff + tctxt.join(",") + " ";
+					text += tabBuff + palmBuff + tctxt.join(",") + " ";
 					tabBuff = "";
+					palmBuff = "";
 					break;
 				default: break;
 			}
 		}
-		console.log(text);
 	});
+	return text;
 }
 
 function parseTabs(text){

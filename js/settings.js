@@ -25,7 +25,7 @@ function SVGbuilder(){
 	var svg = [];
 	this.addNewSVG = function(){
 		let height = (this.strings.tuning.length + 1) * SETTINGS.lineSpacing;
-		svg.push("<svg width='200em' height='" + ((height * 2) / 10) + "em' viewbox='0 0 1000 " + height + "' version='1.1' xmlns='http://www.w3.org/2000/svg' onload='makeDraggable(evt)'><rect fill='white' x='0' y='0' width='1000' height='" + height + "'/>");
+		svg.push("<svg width='200em' height='" + ((height * 2) / 10) + "em' viewbox='0 0 1000 " + height + "' version='1.1' xmlns='http://www.w3.org/2000/svg'><rect fill='white' x='0' y='0' width='1000' height='" + height + "'/>");
 	};
 	this.closeAndGetSVG = function(){
 		this.closeSVG();

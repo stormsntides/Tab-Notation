@@ -30,6 +30,9 @@ function rearrangeNodes(movedEle){
 function makeDraggable(evt) {
   var svg = evt.target;
 
+	console.log("Making event target draggable...");
+	console.log(svg);
+
   // add event listeners for all possible input types
   svg.addEventListener('mousedown', startDrag);
   svg.addEventListener('mousemove', drag);
@@ -85,6 +88,7 @@ function makeDraggable(evt) {
   }
 
   function startDrag(evt) {
+		console.log(evt);
     // make sure element is draggable before attempting to move
     if (evt.target.classList.contains('draggable')) {
       selectedElement = evt.target;
