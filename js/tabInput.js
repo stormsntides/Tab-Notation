@@ -1,19 +1,30 @@
+function triggerSVGdraw(isTriggered){
+  if(isTriggered){
+    // unparse HTML into tab text
+    let unpText = unparseTabs(isTriggered).trim();
+    // get the ancestor container holding tabs
+    let tn = isTriggered.closest(".tn-container");
+    // insert new tabs into raw tabs element
+    let raw = tn.querySelector(".raw-tab").textContent = unpText;
+    tn.printTabs();
+  }
+}
+
 function printTabs(){
   let raw = this.querySelector(".raw-tab");
-
+  // if raw tabs exist, parse them, otherwise create the raw tab element to be added to later
   if(raw){
     let text = raw.textContent.trim();
-
+    // if text exists in raw tab, parse text
     if(text.length > 0){
       let tabs = parseTabs(text);
-
+      // remove all children within this element
       while(this.firstChild){
         this.removeChild(this.firstChild);
       }
-
+      // insert raw tab back into this element since it'll have been removed and append tab HTML data
       this.append(raw);
       this.insertAdjacentHTML("beforeend", tabs);
-
       // register SVG events
       this.querySelectorAll("svg").forEach(function(svg){
         makeDraggable(svg);
@@ -49,14 +60,6 @@ var callback = function(){
   });
 };
 
-function triggerSVGdraw(isTriggered){
-	if(isTriggered){
-		let unpText = unparseTabs(isTriggered).trim();
-    let tn = isTriggered.closest(".tn-container");
-		let raw = tn.querySelector(".raw-tab").textContent = unpText;
-    tn.printTabs();
-	}
-}
 
 // check when DOM is fully loaded
 if(document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)){
