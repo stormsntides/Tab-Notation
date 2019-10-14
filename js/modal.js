@@ -2,20 +2,20 @@ function initModals(){
 	// trigger modals
 	document.querySelectorAll(".modal-trigger").forEach(function(ele){
 		ele.addEventListener("click", function(e){
-			let tg = e.target.dataset["target"];
+			let tg = ele.dataset["target"];
 			document.getElementById(tg).style.display = "flex";
 		});
 	});
 	// close the current modal by clicking close button
 	document.querySelectorAll(".close-modal").forEach(function(ele){
 		ele.addEventListener("click", function(e){
-			e.target.closest(".modal-container").style.display = "none";
+			ele.closest(".modal").style.display = "none";
 		});
 	});
 	// close the current modal by clicking outside of it
 	document.querySelectorAll(".modal").forEach(function(ele){
 		ele.addEventListener("click", function(e){
-			e.target.style.display = "none";
+			ele.style.display = "none";
 		});
 	});
 	// make sure the modal itself doesn't trigger close function

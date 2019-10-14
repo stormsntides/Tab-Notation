@@ -1,8 +1,11 @@
 function unparseTabs(ele){
+	// get the tab notation container
 	let tn = ele.closest(".tn-container");
 
+	// loop through each SVG container and build text separately
 	let text = "";
 	tn.querySelectorAll("svg").forEach(function(svg){
+		// notes are easy to get; just record each note in order they appear
 		let notes = svg.querySelector("g[name='notes']");
 		for(let ni = 0; ni < notes.children.length; ni++){
 			text += notes.children[ni].textContent;
@@ -10,9 +13,11 @@ function unparseTabs(ele){
 
 		text += " ";
 
+		// init variables that will buffer tabs and palm mutes
 		let prevStr = "";
 		let tabBuff = "";
 		let palmBuff = "";
+		// loop through all tabs and break down each part; append and clear buffers on tabs and tabchords
 		let tabs = svg.querySelector("g[name='tabs']");
 		for(let ti = 0; ti < tabs.children.length; ti++){
 			let child = tabs.children[ti];

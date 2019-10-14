@@ -7,6 +7,13 @@ svg text {
 	dominant-baseline: central;
 }
 
+textarea {
+	display: block;
+	width: 600px;
+	height: 500px;
+	margin: 15px;
+}
+
 #tn-check-width {
 	position: absolute;
 	top: -1000px;
@@ -23,10 +30,6 @@ svg text {
 	padding: 5px;
 }
 
-.tn-container .raw-tab {
-	display: none;
-}
-
 .static {
 	cursor: not-allowed;
 }
@@ -34,4 +37,8 @@ svg text {
 .draggable {
 	pointer-events: bounding-box;
 	cursor: pointer;
+}
+
+.mg-bottom {
+	margin-bottom: 10px;
 }

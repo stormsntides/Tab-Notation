@@ -1,3 +1,5 @@
+var textHistory;
+
 function triggerSVGdraw(isTriggered){
   if(isTriggered){
     // unparse HTML into tab text
@@ -5,56 +7,67 @@ function triggerSVGdraw(isTriggered){
     // get the ancestor container holding tabs
     let tn = isTriggered.closest(".tn-container");
     // insert new tabs into raw tabs element
-    let raw = tn.querySelector(".raw-tab").textContent = unpText;
+    let raw = tn.querySelector(".raw-tab").value = unpText;
     tn.printTabs();
   }
 }
 
 function printTabs(){
   let raw = this.querySelector(".raw-tab");
-  // if raw tabs exist, parse them, otherwise create the raw tab element to be added to later
-  if(raw){
-    let text = raw.textContent.trim();
-    // if text exists in raw tab, parse text
-    if(text.length > 0){
-      let tabs = parseTabs(text);
-      // remove all children within this element
-      while(this.firstChild){
-        this.removeChild(this.firstChild);
-      }
-      // insert raw tab back into this element since it'll have been removed and append tab HTML data
-      this.append(raw);
-      this.insertAdjacentHTML("beforeend", tabs);
-      // register SVG events
-      this.querySelectorAll("svg").forEach(function(svg){
-        makeDraggable(svg);
-      });
+  let text = raw.value.trim();
+  // if text exists in raw tab, parse text
+  if(text.length > 0){
+    let tabs = parseTabs(text);
+    let tabContent = this.querySelector(".tn-content");
+    // remove all children within this element
+    while(tabContent.firstChild){
+      tabContent.removeChild(tabContent.firstChild);
     }
-  } else {
-    this.insertAdjacentHTML("afterbegin", "<div class='raw-tab'></div>");
+    // insert tabs at beginning of content
+    tabContent.insertAdjacentHTML("afterbegin", tabs);
+    // register SVG events
+    tabContent.querySelectorAll("svg").forEach(function(svg){
+      makeDraggable(svg);
+    });
   }
 }
 
-// handler when the DOM is fully loaded
-var callback = function(){
-  document.querySelectorAll("textarea").forEach(function(text_area){
-    text_area.addEventListener("keyup", function(e){
-      let area = e.target;
-      let containers = document.querySelectorAll(".tn-container[name='" + area.getAttribute("for") + "']");
-
-      containers.forEach(function(con){
-        let raw = con.querySelector(".raw-tab");
-        if(raw){
-          raw.textContent = area.value.trim();
-        } else {
-          con.insertAdjacentHTML("afterbegin", "<div class='raw-tab'>" + area.value.trim() + "</div>");
-        }
-        printTabs(con);
-      });
-    });
+function clearAndInitTabContainer(tc){
+  // remove all children within this element, if any
+  while(tc.firstChild){
+    tc.removeChild(tc.firstChild);
+  }
+  // add necessary elements
+  tc.insertAdjacentHTML("afterbegin", "<div id='modal-" + tc.dataset["tabId"] + "' class='modal'><div class='modal-content'></div></div>");
+  tc.insertAdjacentHTML("afterbegin", "<button class='modal-trigger mg-bottom' data-target='modal-" + tc.dataset["tabId"] + "'><img src='./resources/pencil.svg'/></button>");
+  tc.querySelector("#modal-" + tc.dataset["tabId"] + " > .modal-content").insertAdjacentHTML("afterbegin", "<textarea class='raw-tab'></textarea>");
+  tc.querySelector("#modal-" + tc.dataset["tabId"] + " > .modal-content").insertAdjacentHTML("beforeend", "<button class='close-modal generate'>Generate Tabs</button>");
+  tc.insertAdjacentHTML("beforeend", "<div class='tn-content'></div>");
+  // add extra event listeners to modal commands
+  tc.querySelector(".modal-trigger").addEventListener("click", function(e){
+    textHistory = tc.querySelector(".raw-tab").value;
   });
+  tc.querySelector("#modal-" + tc.dataset["tabId"]).addEventListener("click", function(e){
+    tc.querySelector(".raw-tab").value = textHistory;
+  });
+  tc.querySelector(".generate").addEventListener("click", function(e){
+    tc.printTabs();
+  });
+  tc.querySelector(".raw-tab").addEventListener("keypress", function(e){
+    if(e.which === 13){
+      tc.printTabs();
+      e.target.closest(".modal").style.display = "none";
+    }
+  });
+  // dynamically added modals need to be initialized
+  initModals();
+}
 
-  document.querySelectorAll(".tn-container").forEach(function(container){
+// handler when the DOM is fully loaded
+function main(){
+  document.querySelectorAll(".tn-container").forEach(function(container, i){
+    container.dataset["tabId"] = i;
+    clearAndInitTabContainer(container);
     container.printTabs = printTabs;
     container.printTabs();
   });
@@ -63,9 +76,9 @@ var callback = function(){
 
 // check when DOM is fully loaded
 if(document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)){
-	callback();
+	main();
 } else {
-	document.addEventListener("DOMContentLoaded", callback);
+	document.addEventListener("DOMContentLoaded", main);
 }
 
 // SVG drag functions (which I guess counts as tab inputs)
