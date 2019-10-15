@@ -13,42 +13,33 @@ function triggerSVGdraw(isTriggered){
 }
 
 function printTabs(){
-  let raw = this.querySelector(".raw-tab");
-  let text = raw.value.trim();
+  let text = this.querySelector(".raw-tab").value.trim();
   // if text exists in raw tab, parse text
   if(text.length > 0){
-    let tabs = parseTabs(text);
-    let tabContent = this.querySelector(".tn-content");
     // remove all children within this element
-    while(tabContent.firstChild){
-      tabContent.removeChild(tabContent.firstChild);
-    }
+    this.clear(".tn-content");
     // insert tabs at beginning of content
-    tabContent.insertAdjacentHTML("afterbegin", tabs);
-    // register SVG events
-    tabContent.querySelectorAll("svg").forEach(function(svg){
-      makeDraggable(svg);
-    });
+    this.querySelector(".tn-content").insertAdjacentHTML("afterbegin", parseTabs(text));
   }
 }
 
-function clearAndInitTabContainer(tc){
+function initTabContainer(tc){
   // remove all children within this element, if any
-  while(tc.firstChild){
-    tc.removeChild(tc.firstChild);
-  }
+  tc.clear();
+
   // add necessary elements
-  tc.insertAdjacentHTML("afterbegin", "<div id='modal-" + tc.dataset["tabId"] + "' class='modal'><div class='modal-content'></div></div>");
-  tc.insertAdjacentHTML("afterbegin", "<button class='modal-trigger mg-bottom' data-target='modal-" + tc.dataset["tabId"] + "'><img src='./resources/pencil.svg'/></button>");
-  tc.querySelector("#modal-" + tc.dataset["tabId"] + " > .modal-content").insertAdjacentHTML("afterbegin", "<textarea class='raw-tab'></textarea>");
-  tc.querySelector("#modal-" + tc.dataset["tabId"] + " > .modal-content").insertAdjacentHTML("beforeend", "<button class='close-modal generate'>Generate Tabs</button>");
+  tc.insertAdjacentHTML("afterbegin", "<div id='floater-" + tc.dataset["tabId"] + "' class='floater'><div class='floater-content'></div></div>");
+  tc.insertAdjacentHTML("afterbegin", "<img class='floater-trigger mg-bottom click-icon' data-target='floater-" + tc.dataset["tabId"] + "' src='./resources/pencil.svg'/>");
+  tc.querySelector("#floater-" + tc.dataset["tabId"] + " > .floater-content").insertAdjacentHTML("afterbegin", "<textarea class='raw-tab'></textarea>");
+  tc.querySelector("#floater-" + tc.dataset["tabId"] + " > .floater-content").insertAdjacentHTML("beforeend", "<button class='close-floater generate'>Generate Tabs</button>");
   tc.insertAdjacentHTML("beforeend", "<div class='tn-content'></div>");
-  // add extra event listeners to modal commands
-  tc.querySelector(".modal-trigger").addEventListener("click", function(e){
-    textHistory = tc.querySelector(".raw-tab").value;
+
+  // add extra event listeners to floater commands
+  tc.querySelector(".floater-trigger").addEventListener("click", function(e){
+    // textHistory = tc.querySelector(".raw-tab").value;
   });
-  tc.querySelector("#modal-" + tc.dataset["tabId"]).addEventListener("click", function(e){
-    tc.querySelector(".raw-tab").value = textHistory;
+  tc.querySelector("#floater-" + tc.dataset["tabId"]).addEventListener("click", function(e){
+    // tc.querySelector(".raw-tab").value = textHistory;
   });
   tc.querySelector(".generate").addEventListener("click", function(e){
     tc.printTabs();
@@ -57,20 +48,26 @@ function clearAndInitTabContainer(tc){
     if(e.which === 13){
       e.preventDefault();
       tc.printTabs();
-      e.target.closest(".modal").style.display = "none";
+      e.target.closest(".floater").style.display = "none";
     }
   });
-  // dynamically added modals need to be initialized
-  initModals();
 }
 
 // handler when the DOM is fully loaded
 function main(){
   document.querySelectorAll(".tn-container").forEach(function(container, i){
-    container.dataset["tabId"] = i;
-    clearAndInitTabContainer(container);
+    // add helper functions
     container.printTabs = printTabs;
+    container.clear = function(s){
+      let el = s ? this.querySelector(s) : this;
+      while(el.firstChild){ el.removeChild(el.firstChild); }
+    };
+
+    // do work
+    container.dataset["tabId"] = i;
+    initTabContainer(container);
     container.printTabs();
+    initSVGevents(container);
   });
 };
 
@@ -83,6 +80,30 @@ if(document.readyState === "complete" || (document.readyState !== "loading" && !
 }
 
 // SVG drag functions (which I guess counts as tab inputs)
+
+function createSVGlistener(parent, evType, runFunc){
+  parent.addEventListener(evType, function(e){
+    let evTarg = e.target.matches("svg") ? e.target : e.target.closest("svg");
+    if(evTarg){
+      runFunc(e, evTarg);
+    }
+  });
+}
+
+function initSVGevents(tabContainer){
+  // document.querySelectorAll(".tn-container").forEach(function(tn){
+    // add event listeners for all possible input types
+    createSVGlistener(tabContainer, "mousedown", startDrag);
+    createSVGlistener(tabContainer, "mousemove", drag);
+    createSVGlistener(tabContainer, "mouseup", endDrag);
+    createSVGlistener(tabContainer, "mouseleave", endDrag);
+    createSVGlistener(tabContainer, "touchstart", startDrag);
+    createSVGlistener(tabContainer, "touchmove", drag);
+    createSVGlistener(tabContainer, "touchend", endDrag);
+    createSVGlistener(tabContainer, "touchleave", endDrag);
+    createSVGlistener(tabContainer, "touchcancel", endDrag);
+  // });
+}
 
 function rearrangeNodes(movedEle){
 	if(movedEle && movedEle.classList.contains("moved")){
@@ -113,106 +134,91 @@ function rearrangeNodes(movedEle){
 	}
 }
 
-function makeDraggable(svg) {
-  // var svg = evt.target;
+// get the position of the mouse in SVG coordinates
+function getMousePosition(evt, svg) {
+  var CTM = svg.getScreenCTM();
+  if (evt.touches) { evt = evt.touches[0]; }
+  return {
+    x: (evt.clientX - CTM.e) / CTM.a,
+    y: (evt.clientY - CTM.f) / CTM.d
+  };
+}
 
-  // add event listeners for all possible input types
-  svg.addEventListener('mousedown', startDrag);
-  svg.addEventListener('mousemove', drag);
-  svg.addEventListener('mouseup', endDrag);
-  svg.addEventListener('mouseleave', endDrag);
-  svg.addEventListener('touchstart', startDrag);
-  svg.addEventListener('touchmove', drag);
-  svg.addEventListener('touchend', endDrag);
-  svg.addEventListener('touchleave', endDrag);
-  svg.addEventListener('touchcancel', endDrag);
+// keep track of the element being dragged, the offset position of the mouse, and the current transform
+// get min and max boundaries to confine svg elements
+var selectedElement, offset, transform, min, max;
 
-  // get the position of the mouse in SVG coordinates
-  function getMousePosition(evt) {
-    var CTM = svg.getScreenCTM();
-    if (evt.touches) { evt = evt.touches[0]; }
-    return {
-      x: (evt.clientX - CTM.e) / CTM.a,
-      y: (evt.clientY - CTM.f) / CTM.d
-    };
+function initDrag(evt, svg){
+  offset = getMousePosition(evt, svg);
+  min = { x: 0, y: 0 };
+  max = { x: 0, y: 0 };
+
+  // set boundaries so that elements can't "escape" svg
+  var brect = svg.getBoundingClientRect();
+  var bbox = selectedElement.getBBox();
+  min.x = 0;
+  max.x = brect.width - bbox.x - bbox.width;
+  min.y = SETTINGS.lineSpacing - (bbox.y + SETTINGS.charRef.height / 2);
+  max.y = (selectedElement.closest("svg").querySelector("[name='notes']").children.length * SETTINGS.lineSpacing) - (bbox.y + bbox.height - SETTINGS.charRef.height / 2);
+
+  // make sure the first transform on the element is a translate transform
+  var transforms = selectedElement.transform.baseVal;
+
+  if (transforms.length === 0 || transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE) {
+    // create a transform that translates by (0, 0)
+    var translate = svg.createSVGTransform();
+    translate.setTranslate(0, 0);
+    selectedElement.transform.baseVal.insertItemBefore(translate, 0);
   }
 
-  // keep track of the element being dragged, the offset position of the mouse, and the current transform
-  // get min and max boundaries to confine svg elements
-  var selectedElement, offset, transform, min, max;
+  // get initial translation
+  transform = transforms.getItem(0);
+  offset.x -= transform.matrix.e;
+  offset.y -= transform.matrix.f;
+}
 
-  function initDrag(evt){
-    offset = getMousePosition(evt);
-    min = { x: 0, y: 0 };
-    max = { x: 0, y: 0 };
+// TODO: flesh this out to add tabs and what not
+function addElement(evt, svg){
+  console.log("Adding new element...");
+  let mp = getMousePosition(evt);
+  svg.querySelector("[name='tabs']").insertAdjacentHTML("beforeend", "<rect fill='red' x='0' y='0' width='" + SETTINGS.charRef.width + "' height='12' transform='translate(" + mp.x + " " + mp.y + ")'/>");
+}
 
-    // set boundaries so that elements can't "escape" svg
-    var brect = svg.getBoundingClientRect();
-    var bbox = selectedElement.getBBox();
-    min.x = 0;
-    max.x = brect.width - bbox.x - bbox.width;
-    min.y = SETTINGS.lineSpacing - (bbox.y + SETTINGS.charRef.height / 2);
-    max.y = (selectedElement.closest("svg").querySelector("[name='notes']").children.length * SETTINGS.lineSpacing) - (bbox.y + bbox.height - SETTINGS.charRef.height / 2);
-
-    // make sure the first transform on the element is a translate transform
-    var transforms = selectedElement.transform.baseVal;
-
-    if (transforms.length === 0 || transforms.getItem(0).type !== SVGTransform.SVG_TRANSFORM_TRANSLATE) {
-      // create a transform that translates by (0, 0)
-      var translate = svg.createSVGTransform();
-      translate.setTranslate(0, 0);
-      selectedElement.transform.baseVal.insertItemBefore(translate, 0);
-    }
-
-    // get initial translation
-    transform = transforms.getItem(0);
-    offset.x -= transform.matrix.e;
-    offset.y -= transform.matrix.f;
+function startDrag(evt, svg) {
+  // make sure element is draggable before attempting to move
+  if (evt.target.classList.contains('draggable')) {
+    selectedElement = evt.target;
+    initDrag(evt, svg);
+  } else if (evt.target.parentNode.classList.contains('draggable')){
+    selectedElement = evt.target.parentNode;
+    initDrag(evt, svg);
+  } else {
+    addElement(evt, svg);
   }
+}
 
-  // TODO: flesh this out to add tabs and what not
-  function addElement(evt){
-    console.log("Adding new element...");
-    let mp = getMousePosition(evt);
-    svg.querySelector("[name='tabs']").insertAdjacentHTML("beforeend", "<rect fill='red' x='0' y='0' width='" + SETTINGS.charRef.width + "' height='12' transform='translate(" + mp.x + " " + mp.y + ")'/>");
+function drag(evt, svg) {
+  if (selectedElement) {
+    evt.preventDefault();
+    var coord = getMousePosition(evt, svg);
+
+    var dx = selectedElement.classList.contains('restrict-x') ? transform.matrix.e : coord.x - offset.x;
+    var dy = selectedElement.classList.contains('restrict-y') ? transform.matrix.f : coord.y - offset.y;
+
+    if(dx < min.x) { dx = min.x; }
+    else if(dx > max.x) { dx = max.x; }
+    if(dy < min.y) { dy = min.y; }
+    else if(dy > max.y) { dy = max.y; }
+
+    transform.setTranslate(dx, dy);
   }
+}
 
-  function startDrag(evt) {
-    // make sure element is draggable before attempting to move
-    if (evt.target.classList.contains('draggable')) {
-      selectedElement = evt.target;
-      initDrag(evt);
-    } else if (evt.target.parentNode.classList.contains('draggable')){
-      selectedElement = evt.target.parentNode;
-      initDrag(evt);
-    } else {
-      addElement(evt);
-    }
-  }
-
-  function drag(evt) {
-    if (selectedElement) {
-      evt.preventDefault();
-      var coord = getMousePosition(evt);
-
-      var dx = selectedElement.classList.contains('restrict-x') ? transform.matrix.e : coord.x - offset.x;
-      var dy = selectedElement.classList.contains('restrict-y') ? transform.matrix.f : coord.y - offset.y;
-
-      if(dx < min.x) { dx = min.x; }
-      else if(dx > max.x) { dx = max.x; }
-      if(dy < min.y) { dy = min.y; }
-      else if(dy > max.y) { dy = max.y; }
-
-      transform.setTranslate(dx, dy);
-    }
-  }
-
-  function endDrag(evt) {
-    if(selectedElement){
-      selectedElement.classList.add('moved');
-      rearrangeNodes(selectedElement);
-      triggerSVGdraw(selectedElement);
-      selectedElement = false;
-    }
+function endDrag(evt, svg) {
+  if(selectedElement){
+    selectedElement.classList.add('moved');
+    rearrangeNodes(selectedElement);
+    triggerSVGdraw(selectedElement);
+    selectedElement = false;
   }
 }

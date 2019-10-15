@@ -1,3 +1,7 @@
+html, body {
+	font-family: Arial;
+}
+
 svg {
 	font-family: monospace;
 	font-size: 10px;
@@ -41,4 +45,19 @@ textarea {
 
 .mg-bottom {
 	margin-bottom: 10px;
+}
+
+.click-icon {
+	padding: 3px;
+	border: 1px solid #999;
+	background: linear-gradient(to bottom, #fff, #ddd);
+	border-radius: 2px;
+}
+
+.click-icon:hover {
+	border-color: #666;
+}
+
+.click-icon:active {
+	background: linear-gradient(to top, #fff, #ddd);
 }
