@@ -55,6 +55,7 @@ function clearAndInitTabContainer(tc){
   });
   tc.querySelector(".raw-tab").addEventListener("keypress", function(e){
     if(e.which === 13){
+      e.preventDefault();
       tc.printTabs();
       e.target.closest(".modal").style.display = "none";
     }
@@ -169,6 +170,13 @@ function makeDraggable(svg) {
     offset.y -= transform.matrix.f;
   }
 
+  // TODO: flesh this out to add tabs and what not
+  function addElement(evt){
+    console.log("Adding new element...");
+    let mp = getMousePosition(evt);
+    svg.querySelector("[name='tabs']").insertAdjacentHTML("beforeend", "<rect fill='red' x='0' y='0' width='" + SETTINGS.charRef.width + "' height='12' transform='translate(" + mp.x + " " + mp.y + ")'/>");
+  }
+
   function startDrag(evt) {
     // make sure element is draggable before attempting to move
     if (evt.target.classList.contains('draggable')) {
@@ -177,6 +185,8 @@ function makeDraggable(svg) {
     } else if (evt.target.parentNode.classList.contains('draggable')){
       selectedElement = evt.target.parentNode;
       initDrag(evt);
+    } else {
+      addElement(evt);
     }
   }
 
