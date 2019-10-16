@@ -6,12 +6,14 @@ function getTarget(evt, selector){
 function initFloaters(){
 	// trigger floaters
 	document.addEventListener("click", function(e){
-		let evTarg = getTarget(e, ".floater-trigger");
-		if(evTarg){
-			let fl = document.getElementById(evTarg.dataset["target"]);
-			fl.style.display = "inline";
-			fl.style.left = e.pageX + "px";
-			fl.style.top = e.pageY + "px";
+		if(e.button === 0){
+			let evTarg = getTarget(e, ".floater-trigger");
+			if(evTarg){
+				let fl = document.getElementById(evTarg.dataset["target"]);
+				fl.style.display = "inline";
+				fl.style.left = e.pageX + "px";
+				fl.style.top = e.pageY + "px";
+			}
 		}
 	});
 	// close the current floater by clicking close button

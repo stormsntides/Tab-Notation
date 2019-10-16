@@ -28,7 +28,7 @@ function initTabContainer(tc){
   tc.clear();
 
   // add necessary elements
-  tc.insertAdjacentHTML("afterbegin", "<div id='context-floater-" + tc.dataset["tabId"] + "' class='floater'>Options to add tabs here...</div>");
+  tc.insertAdjacentHTML("afterbegin", "<div id='context-floater-" + tc.dataset["tabId"] + "' class='floater'></div>");
   tc.insertAdjacentHTML("afterbegin", "<div id='floater-" + tc.dataset["tabId"] + "' class='floater'></div>");
   tc.insertAdjacentHTML("afterbegin", "<img class='floater-trigger mg-bottom click-icon' data-target='floater-" + tc.dataset["tabId"] + "' src='./resources/pencil.svg'/>");
   tc.querySelector("#floater-" + tc.dataset["tabId"]).insertAdjacentHTML("afterbegin", "<textarea class='raw-tab'></textarea>");
@@ -46,7 +46,7 @@ function initTabContainer(tc){
     tc.printTabs();
   });
   tc.querySelector(".raw-tab").addEventListener("keypress", function(e){
-    if(e.which === 13){
+    if(e.key.toLowerCase() === "enter"){
       e.preventDefault();
       tc.printTabs();
       e.target.closest(".floater").style.display = "none";
@@ -56,6 +56,7 @@ function initTabContainer(tc){
 
 // handler when the DOM is fully loaded
 function main(){
+  SETTINGS.load();
   document.querySelectorAll(".tn-container").forEach(function(container, i){
     // add helper functions
     container.printTabs = printTabs;
@@ -70,18 +71,6 @@ function main(){
     container.printTabs();
     initSVGevents(container);
   });
-  // custom trigger for context menu floaters
-	document.addEventListener("contextmenu", function(e){
-    let svgTarg = e.target.matches(".context-floater-trigger > svg") ? e.target : e.target.closest(".context-floater-trigger > svg");
-    let trig = ""; // this should be the trigger so I can access the data id
-		if(evTarg){
-			e.preventDefault();
-      let fl = document.getElementById(evTarg.dataset["target"]);
-			fl.style.display = "inline";
-			fl.style.left = e.pageX + "px";
-			fl.style.top = e.pageY + "px";
-		}
-	});
 };
 
 
@@ -98,24 +87,28 @@ function createSVGlistener(parent, evType, runFunc){
   parent.addEventListener(evType, function(e){
     let evTarg = e.target.matches("svg") ? e.target : e.target.closest("svg");
     if(evTarg){
-      runFunc(e, evTarg);
+      // keep drag functions from activating when using right click
+      let isClick = evType === "mousedown" || evType === "mouseup";
+      if(isClick && e.button === 0){
+        runFunc(e, evTarg);
+      } else if(!isClick) {
+        runFunc(e, evTarg);
+      }
     }
   });
 }
 
 function initSVGevents(tabContainer){
-  // document.querySelectorAll(".tn-container").forEach(function(tn){
-    // add event listeners for all possible input types
-    createSVGlistener(tabContainer, "mousedown", startDrag);
-    createSVGlistener(tabContainer, "mousemove", drag);
-    createSVGlistener(tabContainer, "mouseup", endDrag);
-    createSVGlistener(tabContainer, "mouseleave", endDrag);
-    createSVGlistener(tabContainer, "touchstart", startDrag);
-    createSVGlistener(tabContainer, "touchmove", drag);
-    createSVGlistener(tabContainer, "touchend", endDrag);
-    createSVGlistener(tabContainer, "touchleave", endDrag);
-    createSVGlistener(tabContainer, "touchcancel", endDrag);
-  // });
+  // add event listeners for all possible input types
+  createSVGlistener(tabContainer, "mousedown", startDrag);
+  createSVGlistener(tabContainer, "mousemove", drag);
+  createSVGlistener(tabContainer, "mouseup", endDrag);
+  createSVGlistener(tabContainer, "mouseleave", endDrag);
+  createSVGlistener(tabContainer, "touchstart", startDrag);
+  createSVGlistener(tabContainer, "touchmove", drag);
+  createSVGlistener(tabContainer, "touchend", endDrag);
+  createSVGlistener(tabContainer, "touchleave", endDrag);
+  createSVGlistener(tabContainer, "touchcancel", endDrag);
 }
 
 function rearrangeNodes(movedEle){

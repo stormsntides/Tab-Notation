@@ -8,18 +8,24 @@ const SETTINGS = {
     let noteGroup = check.closest("svg").querySelector("[name='notes']");
   	let y = check.transform.baseVal.getItem(0).matrix.f;
   	return this.clamp(Math.round(y / this.lineSpacing), 1, noteGroup.children.length);
+  },
+  load: function(){
+    if(!document.getElementById("tn-check-width")){
+      document.body.insertAdjacentHTML("afterBegin", "<span id='tn-check-width'>0</span>");
+    }
+    this.charRef = document.getElementById("tn-check-width").getBoundingClientRect();
   }
 };
 
-function loadSettings(){
-  if(!document.getElementById("tn-check-width")){
-    document.body.insertAdjacentHTML("afterBegin", "<span id='tn-check-width'>0</span>");
-  }
-  fontWidthChar = document.getElementById("tn-check-width");
-  SETTINGS.charRef = fontWidthChar.getBoundingClientRect();
-};
-
-loadSettings();
+// function loadSettings(){
+//   if(!document.getElementById("tn-check-width")){
+//     document.body.insertAdjacentHTML("afterBegin", "<span id='tn-check-width'>0</span>");
+//   }
+//   fontWidthChar = document.getElementById("tn-check-width");
+//   SETTINGS.charRef = fontWidthChar.getBoundingClientRect();
+// };
+//
+// loadSettings();
 
 function SVGbuilder(){
 	var svg = [];
