@@ -28,11 +28,12 @@ function initTabContainer(tc){
   tc.clear();
 
   // add necessary elements
-  tc.insertAdjacentHTML("afterbegin", "<div id='floater-" + tc.dataset["tabId"] + "' class='floater'><div class='floater-content'></div></div>");
+  tc.insertAdjacentHTML("afterbegin", "<div id='context-floater-" + tc.dataset["tabId"] + "' class='floater'>Options to add tabs here...</div>");
+  tc.insertAdjacentHTML("afterbegin", "<div id='floater-" + tc.dataset["tabId"] + "' class='floater'></div>");
   tc.insertAdjacentHTML("afterbegin", "<img class='floater-trigger mg-bottom click-icon' data-target='floater-" + tc.dataset["tabId"] + "' src='./resources/pencil.svg'/>");
-  tc.querySelector("#floater-" + tc.dataset["tabId"] + " > .floater-content").insertAdjacentHTML("afterbegin", "<textarea class='raw-tab'></textarea>");
-  tc.querySelector("#floater-" + tc.dataset["tabId"] + " > .floater-content").insertAdjacentHTML("beforeend", "<button class='close-floater generate'>Generate Tabs</button>");
-  tc.insertAdjacentHTML("beforeend", "<div class='tn-content'></div>");
+  tc.querySelector("#floater-" + tc.dataset["tabId"]).insertAdjacentHTML("afterbegin", "<textarea class='raw-tab'></textarea>");
+  tc.querySelector("#floater-" + tc.dataset["tabId"]).insertAdjacentHTML("beforeend", "<button class='close-floater generate'>Generate Tabs</button>");
+  tc.insertAdjacentHTML("beforeend", "<div class='tn-content context-floater-trigger' data-target='context-floater-" + tc.dataset["tabId"] + "'></div>");
 
   // add extra event listeners to floater commands
   tc.querySelector(".floater-trigger").addEventListener("click", function(e){
@@ -69,6 +70,18 @@ function main(){
     container.printTabs();
     initSVGevents(container);
   });
+  // custom trigger for context menu floaters
+	document.addEventListener("contextmenu", function(e){
+    let svgTarg = e.target.matches(".context-floater-trigger > svg") ? e.target : e.target.closest(".context-floater-trigger > svg");
+    let trig = ""; // this should be the trigger so I can access the data id
+		if(evTarg){
+			e.preventDefault();
+      let fl = document.getElementById(evTarg.dataset["target"]);
+			fl.style.display = "inline";
+			fl.style.left = e.pageX + "px";
+			fl.style.top = e.pageY + "px";
+		}
+	});
 };
 
 
@@ -193,7 +206,7 @@ function startDrag(evt, svg) {
     selectedElement = evt.target.parentNode;
     initDrag(evt, svg);
   } else {
-    addElement(evt, svg);
+    // addElement(evt, svg);
   }
 }
 

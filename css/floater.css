@@ -1,4 +1,4 @@
-.floater {
+/* .floater {
 	display: none;
 	position: absolute;
 	top: 0;
@@ -7,10 +7,11 @@
 	right: 0;
 	/* background-color: rgba(0, 0, 0, 0.5); */
 	/* justify-content: center; */
-	overflow: auto;
-}
+/*	overflow: auto;
+} */
 
-.floater-content {
+.floater {
+	display: none;
 	position: absolute;
 	max-width: 800px;
 	padding: 0 10px;
