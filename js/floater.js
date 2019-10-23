@@ -1,13 +1,9 @@
-function getTarget(evt, selector){
-	return evt.target.matches(selector) ? evt.target : evt.target.closest(selector);
-}
-
 // all events are delegated so dynamically added elements will receive events
 function initFloaters(){
 	// trigger floaters
 	document.addEventListener("click", function(e){
 		if(e.button === 0){
-			let evTarg = getTarget(e, ".floater-trigger");
+			let evTarg = getEventTarget(e, ".floater-trigger");
 			if(evTarg){
 				let fl = document.getElementById(evTarg.dataset["target"]);
 				fl.style.display = "inline";
@@ -18,7 +14,7 @@ function initFloaters(){
 	});
 	// close the current floater by clicking close button
 	document.addEventListener("click", function(e){
-		let evTarg = getTarget(e, ".close-floater");
+		let evTarg = getEventTarget(e, ".close-floater");
 		if(evTarg){
 			evTarg.closest(".floater").style.display = "none";
 		}

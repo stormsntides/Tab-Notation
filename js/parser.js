@@ -22,31 +22,31 @@ function unparseTabs(ele){
 		for(let ti = 0; ti < tabs.children.length; ti++){
 			let child = tabs.children[ti];
 			switch(child.dataset["type"]){
-				case "timesignature":
+				case "time-signature":
 					let textNodes = child.querySelectorAll("text");
 					text += textNodes[0].textContent + ":" + textNodes[1].textContent + " ";
 					break;
-				case "palmmute":
+				case "palm-mute":
 					palmBuff = "m ";
 					break;
-				case "slideup":
+				case "slide-up":
 					tabBuff += "/ ";
 					break;
-				case "slidedown":
+				case "slide-down":
 					tabBuff += "\\ ";
 					break;
-				case "bendup":
+				case "bend-up":
 					tabBuff += "^ ";
 					break;
-				case "benddown":
+				case "bend-down":
 					tabBuff += "v ";
 					break;
-				case "hammeron":
-				case "pulloff":
-				case "fingertap":;
+				case "hammer-on":
+				case "pull-off":
+				case "finger-tap":;
 					tabBuff += child.textContent + " ";
 					break;
-				case "barline":
+				case "bar-line":
 					text += "| ";
 					break;
 				case "tab":
@@ -59,7 +59,7 @@ function unparseTabs(ele){
 					tabBuff = "";
 					palmBuff = "";
 					break;
-				case "tabchord":
+				case "tab-chord":
 					let tcstr = [];
 					let tctxt = [];
 					let parentY = child.transform.baseVal.getItem(0).matrix.f;
@@ -124,7 +124,7 @@ function parseTabs(text){
 				// get the midpoint between the top and bottom strings
 				let half = (((builder.strings.tuning.length + 1) * SETTINGS.lineSpacing) / 2);
 				// size text so that it's larger than normal tab font
-				builder.tabs.add({ text: "<g data-type='" + (tkn.type.replace(" ", "").toLowerCase()) + "' class='draggable restrict-y' font-size='2em' transform='translate(" + (SETTINGS.charRef.width + builder.tabs.markers.last()) + ", 0)'>" });
+				builder.tabs.add({ text: "<g data-type='" + (tkn.type.replace(" ", "-").toLowerCase()) + "' class='draggable restrict-y' font-size='2em' transform='translate(" + (SETTINGS.charRef.width + builder.tabs.markers.last()) + ", 0)'>" });
 				// place the numbers according to the x position at just above/below the half mark; double scaling size
 				builder.tabs.add({ text: "<text dx='" + x1 + "' dy='" + (half - SETTINGS.lineSpacing) + "'>" + tkn.value[0] + "</text>" });
 				builder.tabs.add({ text: "<text dx='" + x2 + "' dy='" + (half + SETTINGS.lineSpacing) + "'>" + tkn.value[1] + "</text>" });
@@ -143,7 +143,8 @@ function parseTabs(text){
 			case "Pull Off":
 			case "Finger Tap":
 			case "Palm Mute":
-				addModifier(tkn.type.replace(" ", "").toLowerCase());
+			case "Bar Line":
+				addModifier(tkn.type.replace(" ", "-").toLowerCase());
 				break;
       case "String":
       case "String Chord":
@@ -176,9 +177,6 @@ function parseTabs(text){
 				options.beatLength = tkn.value.replace(/\{|\}/g, "");
 				break;
 			case "Whitespace": break;
-			case "Bar Line":
-				addModifier("barline");
-				break;
       case "Multiply":
         let prevTkn = tokens.prevToken(z);
 				let nextTkn = tokens.nextToken(z);
@@ -214,7 +212,7 @@ function parseTabs(text){
 		vals.sort(function(a, b){ return a.str - b.str; });
 
 		if(vals.length > 1){
-			builder.tabs.add({ text: "<g data-type='tabchord' class='draggable' transform='translate(" + builder.tabs.markers.last() + ", " + (vals[0].str * SETTINGS.lineSpacing) + ")'>" });
+			builder.tabs.add({ text: "<g data-type='tab-chord' class='draggable' transform='translate(" + builder.tabs.markers.last() + ", " + (vals[0].str * SETTINGS.lineSpacing) + ")'>" });
 			// loop through all notes that are being written to
 			for(let v = 0; v < vals.length; v++){
 				// xMod centers single chars in their tab position
@@ -262,7 +260,7 @@ function parseTabs(text){
 		});
 
 		switch(type){
-			case "palmmute":
+			case "palm-mute":
 				builder.tabs.add({
 					tag: "text",
 					type: type,
@@ -275,7 +273,7 @@ function parseTabs(text){
 					text: "pm"
 				});
 				break;
-			case "barline":
+			case "bar-line":
 				builder.tabs.add({
 					tag: "path",
 					type: type,
@@ -293,7 +291,7 @@ function parseTabs(text){
 				});
 				builder.tabs.markers.add();
 				break;
-			case "slideup":
+			case "slide-up":
 				builder.tabs.add({
 					tag: "path",
 					type: type,
@@ -311,7 +309,7 @@ function parseTabs(text){
 				});
 				builder.tabs.markers.add(options.beatLength);
 				break;
-			case "slidedown":
+			case "slide-down":
 				builder.tabs.add({
 					tag: "path",
 					type: type,
@@ -329,7 +327,7 @@ function parseTabs(text){
 				});
 				builder.tabs.markers.add(options.beatLength);
 				break;
-			case "bendup":
+			case "bend-up":
 				builder.tabs.add({
 					tag: "path",
 					type: type,
@@ -347,7 +345,7 @@ function parseTabs(text){
 				});
 				builder.tabs.markers.add(options.beatLength);
 				break;
-			case "benddown":
+			case "bend-down":
 				builder.tabs.add({
 					tag: "path",
 					type: type,
@@ -365,7 +363,7 @@ function parseTabs(text){
 				});
 				builder.tabs.markers.add(options.beatLength);
 				break;
-			case "hammeron":
+			case "hammer-on":
 				builder.tabs.add({
 					tag: "text",
 					type: type,
@@ -379,7 +377,7 @@ function parseTabs(text){
 				});
 				builder.tabs.markers.add(options.beatLength);
 				break;
-			case "pulloff":
+			case "pull-off":
 				builder.tabs.add({
 					tag: "text",
 					type: type,
@@ -393,7 +391,7 @@ function parseTabs(text){
 				});
 				builder.tabs.markers.add(options.beatLength);
 				break;
-			case "fingertap":
+			case "finger-tap":
 				builder.tabs.add({
 					tag: "text",
 					type: type,

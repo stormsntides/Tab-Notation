@@ -54,6 +54,80 @@ function initTabContainer(tc){
   });
 }
 
+function displayContextMenu(evt, trigger){
+  // custom trigger for context menu floaters
+  let origTarget = evt.target.dataset["type"] ? evt.target : evt.target.parentNode;
+  let fl = document.getElementById(trigger.dataset["target"]);
+
+  // display floater and set position
+  fl.style.display = "inline";
+  fl.style.left = evt.pageX + "px";
+  fl.style.top = evt.pageY + "px";
+
+  // remove previous content
+  while(fl.firstChild){ fl.removeChild(fl.firstChild); }
+
+  let type = origTarget.dataset["type"];
+  let floatText = "<div>";
+  switch(type){
+    case "note":
+      floatText += "<h2>Note \"" + origTarget.textContent + "\"</h2>";
+      break;
+    case "tab":
+      let pType = origTarget.parentNode.dataset["type"];
+      if(pType === "tab-chord"){
+        let tabText = "";
+        origTarget = origTarget.parentNode;
+        for(let c = 0; c < origTarget.children.length; c++){
+          if(c > 0){ tabText += "-"; }
+          tabText += origTarget.children[c].textContent;
+        }
+        floatText += "<h3>Tab Chord \"" + tabText + "\"</h3>";
+      } else {
+        floatText += "<h3>Tab \"" + origTarget.textContent + "\"</h3>";
+        floatText += "<select>";
+        for(let i = 0; i <= 30; i++){ floatText += "<option value='" + i + "'>" + i + "</option>"; }
+        floatText += "</select>";
+      }
+      break;
+    case "palm-mute":
+    case "hammer-on":
+    case "pull-off":
+    case "finger-tap":
+    case "bend-up":
+    case "bend-down":
+    case "slide-up":
+    case "slide-down":
+    case "bar-line":
+    case "time-signature":
+      floatText += "<h3>" + capitalizeFirstLetters(type, "-", " ") + "</h3>";
+      break;
+    default:
+      floatText += "<h3>Add</h3>";
+  }
+  floatText += "<button>Update</button><button id='delete-button' class='close-floater'>Delete</button></div>";
+  fl.insertAdjacentHTML("afterbegin", floatText);
+
+  document.getElementById("delete-button").addEventListener("click", function(e){
+    console.log("Deleting element...");
+    let pNode = origTarget.parentNode;
+    pNode.removeChild(origTarget);
+    triggerSVGdraw(pNode);
+  });
+}
+
+function initContextMenu(){
+  // custom trigger for context menu floaters
+  document.addEventListener("contextmenu", function(e){
+    let svgTarg = getEventTarget(e, ".context-floater-trigger > svg");
+    if(svgTarg){
+      e.preventDefault();
+      let trig = svgTarg.parentNode;
+      displayContextMenu(e, trig);
+    }
+  });
+}
+
 // handler when the DOM is fully loaded
 function main(){
   SETTINGS.load();
@@ -71,6 +145,8 @@ function main(){
     container.printTabs();
     initSVGevents(container);
   });
+
+  initContextMenu();
 };
 
 

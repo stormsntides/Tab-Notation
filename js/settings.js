@@ -17,16 +17,6 @@ const SETTINGS = {
   }
 };
 
-// function loadSettings(){
-//   if(!document.getElementById("tn-check-width")){
-//     document.body.insertAdjacentHTML("afterBegin", "<span id='tn-check-width'>0</span>");
-//   }
-//   fontWidthChar = document.getElementById("tn-check-width");
-//   SETTINGS.charRef = fontWidthChar.getBoundingClientRect();
-// };
-//
-// loadSettings();
-
 function SVGbuilder(){
 	var svg = [];
 	this.addNewSVG = function(){
