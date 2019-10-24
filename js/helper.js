@@ -11,3 +11,7 @@ function capitalizeFirstLetters(text, splitChar="", newSeperatorChar=""){
 	});
 	return newText;
 }
+
+function clamp(num, min, max){
+	return Math.min(Math.max(num, min), max);
+}

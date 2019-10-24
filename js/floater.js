@@ -35,8 +35,8 @@ function initFloaters(){
 }
 
 // check when DOM is fully loaded
-if(document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)){
-	initFloaters();
-} else {
-	document.addEventListener("DOMContentLoaded", initFloaters);
-}
+// if(document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)){
+// 	initFloaters();
+// } else {
+// 	document.addEventListener("DOMContentLoaded", initFloaters);
+// }
