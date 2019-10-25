@@ -42,9 +42,13 @@ function unparseTabs(ele){
 					tabBuff += "v ";
 					break;
 				case "hammer-on":
+					tabBuff += "h ";
+					break;
 				case "pull-off":
+					tabBuff += "p ";
+					break;
 				case "finger-tap":;
-					tabBuff += child.textContent + " ";
+					tabBuff += "t ";
 					break;
 				case "bar-line":
 					text += "| ";
