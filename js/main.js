@@ -19,7 +19,7 @@ function main(){
   // initialize floater menus
   initFloaters();
   // initialize context menus
-  initContextMenu();
+  // initContextMenu();
 };
 
 // check when DOM is fully loaded

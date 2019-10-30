@@ -63,3 +63,7 @@ textarea {
 .click-icon:active {
 	background: linear-gradient(to top, #fff, #ddd);
 }
+
+.reveal {
+	display: inline;
+}
