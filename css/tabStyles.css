@@ -20,6 +20,10 @@ textarea {
 	margin: 15px;
 }
 
+ul.options-group {
+	list-style: none;
+}
+
 #tn-check-width {
 	position: absolute;
 	top: -1000px;
@@ -64,6 +68,27 @@ textarea {
 	background: linear-gradient(to top, #fff, #ddd);
 }
 
-.reveal {
-	display: inline;
+.button-group > button {
+	background: #eee;
+	color: inherit;
+	border: 1px solid #999;
+	padding: 1px 4px;
+	margin: 0;
+	font: inherit;
+	cursor: pointer;
+}
+
+.button-group > button:first-child {
+	border-radius: 3px 0 0 3px;
+}
+.button-group > button:last-child {
+	border-radius: 0 3px 3px 0;
+}
+
+.button-group > button:hover {
+	border-color: #666;
+}
+
+.button-group > button:active {
+	background: linear-gradient(to top, #fff, #ddd);
 }

@@ -30,51 +30,50 @@ function initTabContainer(tc){
     <div id="context-floater-${id}" class="floater">
       <h2>Modify</h2>
       <div class="button-group">
-        <button class="reveal-btn" data-target="note-options-${id}">Note</button>
-        <button class="reveal-btn" data-target="tab-options-${id}">Tab</button>
-        <button class="reveal-btn" data-target="modifier-options-${id}">Modifier</button>
-        <button class="reveal-btn" data-target="tim-sig-options-${id}">Time Signature</button>
+        <button class="reveal-btn" data-target="note-options-${id}">Note</button><button class="reveal-btn" data-target="tab-options-${id}">Tab</button><button class="reveal-btn" data-target="modifier-options-${id}">Modifier</button><button class="reveal-btn" data-target="time-sig-options-${id}">Time Signature</button>
       </div>
-      <div id="note-options-${id}">
-        <label>Select Note
-          <select>
-            <option selected value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option>
-          </select>
-        </label>
-        <label>Select Modifier
-          <select>
-            <option selected value="natural">Natural</option><option value="b">Flat</option><option value="#">Sharp</option>
-          </select>
-        </label>
-      </div>
-      <div id="tab-options-${id}">
-        <label>Input Tab
-          <input type="text">
-        </label>
-      </div>
-      <div id="modifier-options-${id}">
-        <label>Select Modifier
-          <select>
-            <option selected value="bar-line">Bar Line</option>
-            <option value="bend-down">Bend Down</option>
-            <option value="bend-up">Bend Up</option>
-            <option value="finger-tap">Finger Tap</option>
-            <option value="hammer-on">Hammer On</option>
-            <option value="palm-mute">Palm Mute</option>
-            <option value="pull-off">Pull Off</option>
-            <option value="slide-down">Slide Down</option>
-            <option value="slide-up">Slide Up</option>
-          </select>
-        </label>
-      </div>
-      <div id="time-sig-options-${id}">
-        <label>Beats Per Measure
-          <input type="number" min="1">
-        </label>
-        <label>Dominant Beat
-          <input type="number" min="1">
-        </label>
-      </div>
+      <ul class="options-group">
+        <li id="note-options-${id}" style="display: none;">
+          <label>Select Note
+            <select>
+              <option selected value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option>
+            </select>
+          </label>
+          <label>Select Modifier
+            <select>
+              <option selected value="natural">Natural</option><option value="b">Flat</option><option value="#">Sharp</option>
+            </select>
+          </label>
+        </li>
+        <li id="tab-options-${id}" style="display: none;">
+          <label>Input Tab
+            <input type="text" value="0">
+          </label>
+        </li>
+        <li id="modifier-options-${id}" style="display: none;">
+          <label>Select Modifier
+            <select>
+              <option selected value="bar-line">Bar Line</option>
+              <option value="bend-down">Bend Down</option>
+              <option value="bend-up">Bend Up</option>
+              <option value="finger-tap">Finger Tap</option>
+              <option value="hammer-on">Hammer On</option>
+              <option value="palm-mute">Palm Mute</option>
+              <option value="pull-off">Pull Off</option>
+              <option value="slide-down">Slide Down</option>
+              <option value="slide-up">Slide Up</option>
+            </select>
+          </label>
+        </li>
+        <li id="time-sig-options-${id}" style="display: none;">
+          <label>Beats Per Measure
+            <input type="number" min="1" max="99" size="10" value="4">
+          </label>
+          <label>Dominant Beat
+            <input type="number" min="1" max="99" size="10" value="4">
+          </label>
+        </li>
+      </ul>
       <div class="button-group">
         <button>Add</button><button>Update</button><button>Delete</button>
       </div>
@@ -95,20 +94,39 @@ function initTabContainer(tc){
     }
   });
   tc.querySelector(".context-floater-trigger").addEventListener("contextmenu", function(e){
-    console.log(e.target);
     let evtTarg = getEventTarget(e, ".context-floater-trigger");
     if(evtTarg){
+      // display menu
       e.preventDefault();
       let menu = tc.querySelector("#" + evtTarg.dataset["target"]);
       menu.style.display = "inline";
       menu.style.left = e.pageX + "px";
       menu.style.top = e.pageY + "px";
+      // get clicked data
+      let origTarg = e.target.dataset["type"] ? e.target : e.target.closest("[data-type]");
+      if(origTarg){
+        switch(origTarg.dataset["type"]){
+          case "note":
+            let sels = tc.querySelectorAll("#note-options-" + id + " select");
+            sels[0].value = origTarg.textContent[0];
+            if(origTarg.textContent.length > 1){ sels[1].value = origTarg.textContent[1]; }
+            else { sels[1].value = "natural"; }
+          case "tab":
+          case "tab-chord":
+          case "time-signature":
+          default:
+        }
+      }
     }
-    // let svgTarg = getEventTarget(e, ".context-floater-trigger > svg");
-    // if(svgTarg){
-    //   e.preventDefault();
-    //   let trig = svgTarg.parentNode;
-    //   displayContextMenu(e, trig);
-    // }
+  });
+  tc.querySelectorAll(".reveal-btn").forEach(function(btn){
+    btn.addEventListener("click", function(e){
+      let targ = tc.querySelector("#" + e.target.dataset["target"]);
+      let parent = targ.parentNode;
+      for(let i = 0; i < parent.children.length; i++){
+        parent.children[i].style.display = "none";
+      }
+      targ.style.display = "inline";
+    });
   });
 }
