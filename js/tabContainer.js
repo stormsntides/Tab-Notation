@@ -15,6 +15,15 @@ function draw(){
   }
 }
 
+function openOptions(fromNode, target){
+  let targ = fromNode.querySelector(target);
+  let parent = targ.parentNode;
+  for(let i = 0; i < parent.children.length; i++){
+    parent.children[i].style.display = "none";
+  }
+  targ.style.display = "inline";
+}
+
 function initTabContainer(tc){
   // remove all children if any
   tc.clear();
@@ -39,6 +48,7 @@ function initTabContainer(tc){
               <option selected value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option>
             </select>
           </label>
+          <br>
           <label>Select Modifier
             <select>
               <option selected value="natural">Natural</option><option value="b">Flat</option><option value="#">Sharp</option>
@@ -69,6 +79,7 @@ function initTabContainer(tc){
           <label>Beats Per Measure
             <input type="number" min="1" max="99" size="10" value="4">
           </label>
+          <br>
           <label>Dominant Beat
             <input type="number" min="1" max="99" size="10" value="4">
           </label>
@@ -107,26 +118,39 @@ function initTabContainer(tc){
       if(origTarg){
         switch(origTarg.dataset["type"]){
           case "note":
+            openOptions(tc, "#note-options-" + id);
             let sels = tc.querySelectorAll("#note-options-" + id + " select");
             sels[0].value = origTarg.textContent[0];
             if(origTarg.textContent.length > 1){ sels[1].value = origTarg.textContent[1]; }
             else { sels[1].value = "natural"; }
+            break;
           case "tab":
-          case "tab-chord":
+            openOptions(tc, "#tab-options-" + id);
+            if(origTarg.parentNode.dataset["type"] === "tab-chord"){
+              origTarg = origTarg.parentNode;
+              let tabIns = tc.querySelector("#tab-options-" + id + " input");
+              tabIns.value = "";
+              for(let c = 0; c < origTarg.children.length; c++){
+                if(c > 0){ tabIns.value += ", "; }
+                tabIns.value += origTarg.children[c].textContent;
+              }
+            } else {
+              let tabIn = tc.querySelector("#tab-options-" + id + " input");
+              tabIn.value = origTarg.textContent;
+            }
+            break;
           case "time-signature":
+            openOptions(tc, "#time-sig-options-" + id);
+            break;
           default:
+            openOptions(tc, "#modifier-options-" + id);
         }
       }
     }
   });
   tc.querySelectorAll(".reveal-btn").forEach(function(btn){
     btn.addEventListener("click", function(e){
-      let targ = tc.querySelector("#" + e.target.dataset["target"]);
-      let parent = targ.parentNode;
-      for(let i = 0; i < parent.children.length; i++){
-        parent.children[i].style.display = "none";
-      }
-      targ.style.display = "inline";
+      openOptions(tc, "#" + e.target.dataset["target"]);
     });
   });
 }
