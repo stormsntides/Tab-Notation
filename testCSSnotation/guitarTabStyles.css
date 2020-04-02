@@ -1,0 +1,73 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+#help::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-shadow: inset 0 12px 12px -8px #333, inset 0 -12px 12px -8px #333;
+}
+
+#help {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  position: relative;
+  padding: 1em;
+  background-color: #ddd;
+  z-index: -1;
+}
+
+[class$="-string-guitar"]::before {
+  content: "";
+  position: absolute;
+  top: 0.5em;
+  left: 2em;
+  right: 0;
+  background-color: gray;
+  height: 2px;
+}
+
+.six-string-guitar::before {
+  box-shadow: 0 1em 0 0 gray, 0 2em 0 0 gray, 0 3em 0 0 gray, 0 4em 0 0 gray, 0 5em 0 0 gray;
+}
+
+.seven-string-guitar::before {
+  box-shadow: 0 1em 0 0 gray, 0 2em 0 0 gray, 0 3em 0 0 gray, 0 4em 0 0 gray, 0 5em 0 0 gray, 0 6em 0 0 gray;
+}
+
+.eight-string-guitar::before {
+  box-shadow: 0 1em 0 0 gray, 0 2em 0 0 gray, 0 3em 0 0 gray, 0 4em 0 0 gray, 0 5em 0 0 gray, 0 6em 0 0 gray, 0 7em 0 0 gray;
+}
+
+.nine-string-guitar::before {
+  box-shadow: 0 1em 0 0 gray, 0 2em 0 0 gray, 0 3em 0 0 gray, 0 4em 0 0 gray, 0 5em 0 0 gray, 0 6em 0 0 gray, 0 7em 0 0 gray, 0 8em 0 0 gray;
+}
+
+.string-1 { top: 0; }
+.string-2 { top: 1em; }
+.string-3 { top: 2em; }
+.string-4 { top: 3em; }
+.string-5 { top: 4em; }
+.string-6 { top: 5em; }
+.string-7 { top: 6em; }
+.string-8 { top: 7em; }
+.string-9 { top: 8em; }
+
+.tab-staff {
+  font-family: Arial;
+  font-size: 20px;
+  position: relative;
+}
+
+.tab-node, .tuning-node {
+  display: block;
+  position: absolute;
+  width: 2em;
+  text-align: center;
+}

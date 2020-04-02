@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tab Notation</title>
+    <meta name="viewport" charset="utf-8" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="guitarTabStyles.css">
+  </head>
+  <body>
+    <div id="help">
+      <section>
+        <header>Guidelines</header>
+        <ul>
+          <li>Tab notations must begin with a tuning description: EBGDAE</li>
+          <li>All note names must be capitalized: E B G D A E</li>
+          <li>Tabs can be written as any number literal: 1 2 7 15 24</li>
+          <li>Strings can be written as "S" followed by a number literal: S1, S5, S8</li>
+          <li>Pound sign (#) refers to sharp notes: A#</li>
+          <li>Lowercase b (b) refers to flat notes: Ab</li>
+          <li>Forward slash (\) is a slide down: 4\1</li>
+          <li>Back slash (/) is a slide up: 4/7</li>
+          <li>Dash (-) is a string range: S5-2 3,5</li>
+          <li>Comma (,) is a chord: S5,4,3 3,5,7</li>
+          <li>Caret (^) is a bend to note: 7^8 3^5</li>
+          <li>Lowercase v (v) is a bend down from note: 12v10 6v5</li>
+          <li>Lowercase h (h) is a hammer-on: 7h8 3h5h7</li>
+          <li>Lowercase p (p) is a pull-off: 7p5 5p3p0</li>
+          <li>Lowercase t (t) is a finger-tap: t15 t17</li>
+          <li>Lowercase m (m) is a palm mutes: m0 m1 m3 m1</li>
+        </ul>
+      </section>
+      <section>
+        <header>Legend</header>
+        <ul>
+          <li>A-G = Note</li>
+          <li>S OR s = String</li>
+          <li>0-9 = Tab</li>
+          <li># OR b = Note Modifier</li>
+          <li>/ = Slide Up</li>
+          <li>\ = Slide Down</li>
+          <li>^ = Bend Up</li>
+          <li>v = Bend Down (release)</li>
+          <li>h = Hammer On</li>
+          <li>p = Pull Off</li>
+          <li>t = Finger Tap</li>
+          <li>m = Palm Mute</li>
+          <li>, = Chord Combiner</li>
+          <li>- = Chord Range Combiner</li>
+          <li>: = Time Sig Combiner</li>
+          <li>[ = Open Tab Info</li>
+          <li>] = Close Tab Info</li>
+        </ul>
+      </section>
+      <section>
+        <header>Copy/Paste Examples</header>
+        <ul>
+          <li>D#A#F#C#G#D#G# S3 10^11 S4 0 m0 3 4^5 0 m0 0 3 4^5 0 0 m0 S3 8 S4 4 m0 m0</li>
+          <li>EBGDAE s1-3 10,11,12 s4 m14 m12 h m15 p 10 5 6 | 4:4 s5,3,2 m1,3,5 s4 1^2v0 0 0 8/9 s6-4 5 5</li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="tab-staff"></div>
+
+    <script type="text/javascript" src="helper2.js"></script>
+    <script type="text/javascript" src="settings2.js"></script>
+    <script type="text/javascript" src="tabContainer2.js"></script>
+    <script type="text/javascript" src="tokenizer2.js"></script>
+    <script type="text/javascript" src="parser2.js"></script>
+    <script type="text/javascript" src="main2.js"></script>
+  </body>
+</html>
