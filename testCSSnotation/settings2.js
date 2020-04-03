@@ -1,6 +1,4 @@
 const SETTINGS = {
-  charRef: undefined,
-  lineSpacing: 12,
   clamp: function(n, min, max){
     return Math.min(Math.max(n, min), max);
   },
@@ -8,17 +6,33 @@ const SETTINGS = {
     let noteGroup = check.closest("svg").querySelector("[name='notes']");
   	let y = check.transform.baseVal.getItem(0).matrix.f;
   	return this.clamp(Math.round(y / this.lineSpacing), 1, noteGroup.children.length);
-  },
-  load: function(){
-    if(!document.getElementById("tn-check-width")){
-      document.body.insertAdjacentHTML("afterBegin", "<span id='tn-check-width'>0</span>");
-    }
-    this.charRef = document.getElementById("tn-check-width").getBoundingClientRect();
   }
 };
 
+// class HTMLbuilder {
+//   constructor() {
+//     this.HTML = [];
+//     this.marker = 0;
+//     addNewTabStaff() {
+//       let tabStaff = document.createElement("div");
+//       tabStaff.classList.add("tab-staff");
+//       tabStaff.classList.add("six-string-instrument");
+//       this.HTML.push(tabStaff);
+//     }
+//     getLastStaff() {
+//       return this.HTML[this.HTML.length - 1];
+//     }
+//     addTab(options) {
+//       let tabNode = document.createElement("span");
+//       tabNode.classList.add("tab-node");
+//       let last = this.getLastStaff();
+//       tabNode.style.left = (last.children.length * 2) + "em";
+//     }
+//   }
+// }
+
 function SVGbuilder(){
-	var svg = [];
+	const svg = [];
 	this.addNewSVG = function(){
 		let height = (this.strings.tuning.length + 1) * SETTINGS.lineSpacing;
 		svg.push("<svg width='200em' height='" + ((height * 2) / 10) + "em' viewbox='0 0 1000 " + height + "' version='1.1' xmlns='http://www.w3.org/2000/svg'><rect fill='white' x='0' y='0' width='1000' height='" + height + "'/>");

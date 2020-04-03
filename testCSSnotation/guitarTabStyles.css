@@ -23,7 +23,7 @@ html, body {
   z-index: -1;
 }
 
-[class$="-string-guitar"]::before {
+[class$="-string-instrument"]::before {
   content: "";
   position: absolute;
   top: 0.5em;
@@ -33,19 +33,27 @@ html, body {
   height: 2px;
 }
 
-.six-string-guitar::before {
+.four-string-instrument::before {
+  box-shadow: 0 1em 0 0 gray, 0 2em 0 0 gray, 0 3em 0 0 gray;
+}
+
+.five-string-instrument::before {
+  box-shadow: 0 1em 0 0 gray, 0 2em 0 0 gray, 0 3em 0 0 gray, 0 4em 0 0 gray;
+}
+
+.six-string-instrument::before {
   box-shadow: 0 1em 0 0 gray, 0 2em 0 0 gray, 0 3em 0 0 gray, 0 4em 0 0 gray, 0 5em 0 0 gray;
 }
 
-.seven-string-guitar::before {
+.seven-string-instrument::before {
   box-shadow: 0 1em 0 0 gray, 0 2em 0 0 gray, 0 3em 0 0 gray, 0 4em 0 0 gray, 0 5em 0 0 gray, 0 6em 0 0 gray;
 }
 
-.eight-string-guitar::before {
+.eight-string-instrument::before {
   box-shadow: 0 1em 0 0 gray, 0 2em 0 0 gray, 0 3em 0 0 gray, 0 4em 0 0 gray, 0 5em 0 0 gray, 0 6em 0 0 gray, 0 7em 0 0 gray;
 }
 
-.nine-string-guitar::before {
+.nine-string-instrument::before {
   box-shadow: 0 1em 0 0 gray, 0 2em 0 0 gray, 0 3em 0 0 gray, 0 4em 0 0 gray, 0 5em 0 0 gray, 0 6em 0 0 gray, 0 7em 0 0 gray, 0 8em 0 0 gray;
 }
 
@@ -63,6 +71,7 @@ html, body {
   font-family: Arial;
   font-size: 20px;
   position: relative;
+  height: 10em;
 }
 
 .tab-node, .tuning-node {
