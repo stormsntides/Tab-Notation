@@ -1,41 +1,81 @@
 function parseTabs(text){
-  // tokenize text and create array to generate string tabs into
-	let tokens = tokenize(text);
+	// reference to tab container should "this" not work in functions
+	const parent = this;
+	let currentStaff;
+	let numOfStrings = 0;
 
+  // tokenize text and create array to generate string tabs into
+	const tokens = tokenize(text);
   const writeToStrings = [];
   const markerList = {
     list: [0],
-    last() { return list[list.length - 1]; },
-    add() { list.push(this.last() + 2); }
+    last() { return this.list[this.list.length - 1]; },
+    add() { this.list.push(this.last() + 2); }
   };
+
+	const createStaff = (tuning="EBGDAE") => {
+		// create new staff node to place tuning nodes into
+		currentStaff = document.createElement("div");
+		currentStaff.classList.add("tab-staff");
+		currentStaff.classList.add(numberToText(tuning.length) + "-string-instrument");
+
+		// convert tuning string to array
+		let re = /[A-G][#b]*/g;
+		let tArr = tuning.match(re);
+
+		// append tuning notes to staff
+		for (let t = 0; t < tArr.length; t++) {
+			let tuningNode = document.createElement("span");
+			tuningNode.classList.add("tuning-node");
+			tuningNode.classList.add(`string-${ t + 1 }`);
+			tuningNode.style.left = markerList.last();
+
+			tuningNode.appendChild(document.createTextNode(tArr[t]));
+			currentStaff.appendChild(tuningNode);
+		}
+
+		numOfStrings = tArr.length;
+		parent.appendChild(currentStaff);
+
+		markerList.add();
+	};
+
+	const addTabs = (token) => {
+		if(!currentStaff) { createStaff(); }
+
+		let tabs = token.value;
+		let strings = writeToStrings;
+
+		// create array of objects to combine tabs and strings
+		let vals = [];
+		for(let s = 0; s < strings.length; s++){
+			// max denotes the max value s can be when getting token values
+			let max = s >= tabs.length ? tabs.length - 1 : s;
+			vals.push({ str: strings[s], tab: tabs[max] });
+		}
+		// sort tabs by string
+		vals.sort(function(a, b){ return a.str - b.str; });
+
+		// append tabs to staff
+		for(let v = 0; v < vals.length; v++){
+			let tabNode = document.createElement("span");
+			tabNode.classList.add("tab-node");
+			tabNode.classList.add("string-" + vals[v].str);
+
+			tabNode.appendChild(document.createTextNode(vals[v].tab));
+			tabNode.style.left = markerList.last() + "em";
+
+			currentStaff.appendChild(tabNode);
+		}
+
+		markerList.add();
+	};
 
   for(let z = 0; z < tokens.length; z++){
     let tkn = tokens[z];
     switch(tkn.type){
 			case "Tuning":
-        let newStaff = document.createElement("div");
-        newStaff.classList.add("tab-staff");
-
-				// denote the tuning to be used when selecting notes to be written to
-				let re = /[A-G][#b]*/g;
-				let buff = [];
-        let stringCount = 0;
-				while ((buff = re.exec(tkn.value)) !== null) {
-          stringCount += 1;
-
-					let tuningNode = document.createElement("span");
-          tuningNode.classList.add("tuning-node");
-          tuningNode.classList.add("string-" + stringCount);
-          tuningNode.style.left = markerList[markerList.length - 1];
-
-          tuningNode.appendChild(document.createTextNode(buff[0]));
-          newStaff.appendChild(tuningNode);
-				}
-
-        newStaff.classList.add(numberToText(stringCount) + "-string-instrument");
-        this.appendChild(newStaff);
-
-        markerList.add();
+				createStaff(tkn.value);
 				break;
 			case "Time Signature":
 				// this is the difference between the two numbers' lengths
@@ -72,124 +112,46 @@ function parseTabs(text){
 			case "Bar Line":
 				addModifier(tkn.type.replace(" ", "-").toLowerCase());
 				break;
-      case "String Chord Range":
-        let min = Math.min(parseInt(tkn.value[0]), parseInt(tkn.value[1]));
-        let max = Math.max(parseInt(tkn.value[0]), parseInt(tkn.value[1]));
-        let numArr = [];
-        for(let m = min; m <= max; m++){
-          numArr.push(m);
-        }
-        tkn.type = "String Chord";
-        tkn.value = numArr;
       case "String":
       case "String Chord":
-				// builder.strings.toWrite = [];
+				// erase data in writeToStrings and replace with new write values
         writeToStrings.splice(0, writeToStrings.length);
         for(let n = 0; n < tkn.value.length; n++){
-					// builder.strings.toWrite.push(parseInt(tkn.value[n]));
           writeToStrings.push(parseInt(tkn.value[n]));
         }
         break;
+			case "String Chord Range":
+				// erase data in writeToStrings and replace with new write values
+				writeToStrings.splice(0, writeToStrings.length);
+				// get the difference between the values and build the range (decreasing or increasing)
+				let df = parseInt(tkn.value[0]) - parseInt(tkn.value[1]);
+				for(let m = 0; m <= Math.abs(df); m++){
+					writeToStrings.push(tkn.value[0] - (m * Math.sign(df)));
+				}
+				break;
 			case "Percussion":
 			case "Tab":
       case "Tab Chord":
 				addTabs(tkn);
         break;
-      case "Tab Info":
-				let info = tkn.value.replace(/\[|\]/g, "").split(" ");
-				for(let ti = 0; ti < info.length; ti++){
-					if(/beats=on/.test(info[ti])){
-						options.showBeats = true;
-					}
-				}
-				break;
-			case "Beat Length":
-				options.beatLength = tkn.value.replace(/\{|\}/g, "");
-				break;
 			case "Whitespace": break;
       case "Multiply":
         let prevTkn = tokens.prevToken(z);
 				let nextTkn = tokens.nextToken(z);
         if(prevTkn && (prevTkn.type === "Tab" || prevTkn.type === "Tab Chord" || prevTkn.type === "Percussion") && nextTkn && nextTkn.type === "Tab"){
           // repeat how many times specified in the multiply token
-          for(let r = 0; r < nextTkn.value[0]; r++){
+          for(let r = 0; r < nextTkn.value[0] - 1; r++){
 						addTabs(prevTkn);
           }
         }
+				z += 1;
         break;
       default: break;
     }
   }
 
-	return builder.closeAndGetSVG();
-
-	function addTabs(tabToken){
-		let tabs = tabToken.value;
-		let strings = writeToStrings;
-
-		// create array of objects to combine tabs and strings
-		let vals = [];
-		for(let s = 0; s < strings.length; s++){
-			// max denotes the max value s can be when getting token values
-			let max = s >= tabs.length ? tabs.length - 1 : s;
-			vals.push({ str: strings[s], tab: tabs[max] });
-		}
-		// sort tabs by string
-		vals.sort(function(a, b){ return a.str - b.str; });
-
-    for(let v = 0; v < vals.length; v++){
-      let tabNode = document.createElement("span");
-      // finish creating node
-    }
-
-		if(vals.length > 1){
-			builder.tabs.add({ text: "<g data-type='tab-chord' class='draggable' transform='translate(" + builder.tabs.markers.last() + ", " + (vals[0].str * SETTINGS.lineSpacing) + ")'>" });
-			// loop through all notes that are being written to
-			for(let v = 0; v < vals.length; v++){
-				// xMod centers single chars in their tab position
-				let xMod = vals[v].tab.length === 1 ? SETTINGS.charRef.width / 2 : 0;
-				builder.tabs.add({
-					tag: "text",
-					type: "tab",
-					classes: "",
-					fill: "black",
-					translate: {
-						x: xMod,
-						y: (vals[v].str - vals[0].str) * SETTINGS.lineSpacing
-					},
-					text: vals[v].tab
-				});
-			}
-			builder.tabs.add({ text: "</g>" });
-		} else {
-			// loop through all notes that are being written to
-			for(let v = 0; v < vals.length; v++){
-				// xMod centers single chars in their tab position
-				let xMod = vals[v].tab.length === 1 ? SETTINGS.charRef.width / 2 : 0;
-				builder.tabs.add({
-					tag: "text",
-					type: "tab",
-					classes: "draggable",
-					fill: "black",
-					translate: {
-						x: builder.tabs.markers.last() + xMod,
-						y: vals[v].str * SETTINGS.lineSpacing
-					},
-					text: vals[v].tab
-				});
-			}
-		}
-		builder.tabs.markers.add(3 * options.beatLength);
-	}
-
 	function addModifier(type){
-		let largestIndex = 0;
-		let smallestIndex = builder.strings.tuning.length + 1;
-		builder.strings.toWrite.forEach(function(i){
-			largestIndex = largestIndex < i ? i : largestIndex;
-			smallestIndex = smallestIndex > i ? i : smallestIndex;
-		});
-
+		if(!currentStaff) { createStaff(); }
 		switch(type){
 			case "palm-mute":
 				builder.tabs.add({
@@ -205,22 +167,12 @@ function parseTabs(text){
 				});
 				break;
 			case "bar-line":
-				builder.tabs.add({
-					tag: "path",
-					type: type,
-					classes: "draggable restrict-y",
-					fill: "gray",
-					stroke: {
-						color: "transparent",
-						width: 10,
-						path: "m -0.5 0 v " + ((builder.strings.tuning.length + 1) * SETTINGS.lineSpacing) + " h 1 v -" + ((builder.strings.tuning.length + 1) * SETTINGS.lineSpacing) + " z"
-					},
-					translate: {
-						x: builder.tabs.markers.last() + SETTINGS.charRef.width,
-						y: 0
-					}
-				});
-				builder.tabs.markers.add();
+				let barLine = document.createElement("span");
+				barLine.classList.add(`${ type }-${ numOfStrings }`);
+				barLine.style.left = markerList.last() + "em";
+
+				currentStaff.appendChild(barLine);
+				// markerList.add();
 				break;
 			case "slide-up":
 				builder.tabs.add({
