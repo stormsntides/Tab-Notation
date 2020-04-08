@@ -1,10 +1,15 @@
-function parseTabs(text){
-	// reference to tab container should "this" not work in functions
-	const parent = this;
+function parseTabs(){
+	const rawTab = document.querySelector(`.raw-tab[for="${ this.id }"]`);
+	// if there's nothing to parse, don't run rest of function
+	if(!rawTab){
+		return;
+	}
+
 	let currentStaff;
 	let numOfStrings = 0;
 
   // tokenize text and create array to generate string tabs into
+	let text = rawTab.tagName === "TEXTAREA" ? rawTab.value.trim() : rawTab.textContent.trim();
 	const tokens = tokenize(text);
   const writeToStrings = [];
   const markerList = {
@@ -35,7 +40,7 @@ function parseTabs(text){
 		}
 
 		numOfStrings = tArr.length;
-		parent.appendChild(currentStaff);
+		this.appendChild(currentStaff);
 
 		markerList.add();
 	};
@@ -78,28 +83,6 @@ function parseTabs(text){
 				createStaff(tkn.value);
 				break;
 			case "Time Signature":
-				// this is the difference between the two numbers' lengths
-				let diff = Math.abs(tkn.value[0].length - tkn.value[1].length);
-				// get the length of the largest number; i.e. number with the most digits
-				let largeNum = tkn.value[0].length < tkn.value[1].length ? tkn.value[1].length : tkn.value[0].length;
-
-				// x1 is the x position of the top number, x2 is the x position of the bottom number
-				let x1 = tkn.value[0].length < tkn.value[1].length ? (diff * SETTINGS.charRef.width) : 0;
-				let x2 = tkn.value[1].length < tkn.value[0].length ? (diff * SETTINGS.charRef.width) : 0;
-
-				// get the midpoint between the top and bottom strings
-				let half = (((builder.strings.tuning.length + 1) * SETTINGS.lineSpacing) / 2);
-				// size text so that it's larger than normal tab font
-				builder.tabs.add({ text: "<g data-type='" + (tkn.type.replace(" ", "-").toLowerCase()) + "' class='draggable restrict-y' font-size='2em' transform='translate(" + (SETTINGS.charRef.width + builder.tabs.markers.last()) + ", 0)'>" });
-				// place the numbers according to the x position at just above/below the half mark; double scaling size
-				builder.tabs.add({ text: "<text dx='" + x1 + "' dy='" + (half - SETTINGS.lineSpacing) + "'>" + tkn.value[0] + "</text>" });
-				builder.tabs.add({ text: "<text dx='" + x2 + "' dy='" + (half + SETTINGS.lineSpacing) + "'>" + tkn.value[1] + "</text>" });
-				// create divider line between the numbers; close out number grouping
-				builder.tabs.add({ text: "<path fill='transparent' stroke='black' stroke-width='1' d='m " + ((x1 < x2 ? x1 : x2) - SETTINGS.charRef.width) + " " + half + " h " + ((largeNum * SETTINGS.charRef.width * 2) + (SETTINGS.charRef.width * 2)) + "'/>" });
-				builder.tabs.add({ text: "</g>" });
-
-				// add enough space to account for each digit's width so that spacing is uniform between time signature and tabs
-				builder.tabs.markers.add(3 + (largeNum * 2));
 				break;
 			case "Slide Up":
 			case "Slide Down":
@@ -154,17 +137,6 @@ function parseTabs(text){
 		if(!currentStaff) { createStaff(); }
 		switch(type){
 			case "palm-mute":
-				builder.tabs.add({
-					tag: "text",
-					type: type,
-					classes: "draggable",
-					fill: "green",
-					translate: {
-						x: builder.tabs.markers.last(),
-						y: largestIndex * SETTINGS.lineSpacing + SETTINGS.lineSpacing / 2
-					},
-					text: "pm"
-				});
 				break;
 			case "bar-line":
 				let barLine = document.createElement("span");
@@ -172,121 +144,20 @@ function parseTabs(text){
 				barLine.style.left = markerList.last() + "em";
 
 				currentStaff.appendChild(barLine);
-				// markerList.add();
 				break;
 			case "slide-up":
-				builder.tabs.add({
-					tag: "path",
-					type: type,
-					classes: "draggable",
-					fill: "transparent",
-					stroke: {
-						color: "red",
-						width: 1,
-						path: "m 0 0 l " + (SETTINGS.charRef.width * 2) + " " + ((smallestIndex - largestIndex) * SETTINGS.lineSpacing - SETTINGS.lineSpacing / 2)
-					},
-					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charRef.width,
-						y: largestIndex * SETTINGS.lineSpacing + SETTINGS.lineSpacing / 4
-					}
-				});
-				builder.tabs.markers.add(options.beatLength);
 				break;
 			case "slide-down":
-				builder.tabs.add({
-					tag: "path",
-					type: type,
-					classes: "draggable",
-					fill: "transparent",
-					stroke: {
-						color: "red",
-						width: 1,
-						path: "m 0 0 l " + (SETTINGS.charRef.width * 2) + " " + ((largestIndex - smallestIndex) * SETTINGS.lineSpacing + SETTINGS.lineSpacing / 2)
-					},
-					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charRef.width,
-						y: smallestIndex * SETTINGS.lineSpacing - SETTINGS.lineSpacing / 4
-					}
-				});
-				builder.tabs.markers.add(options.beatLength);
 				break;
 			case "bend-up":
-				builder.tabs.add({
-					tag: "path",
-					type: type,
-					classes: "draggable",
-					fill: "transparent",
-					stroke: {
-						color: "red",
-						width: 1,
-						path: "m 0 0 q " + SETTINGS.charRef.width + " 0 " + SETTINGS.charRef.width + " " + (-1 * (SETTINGS.lineSpacing / 2)) + " l 2 1.5"
-					},
-					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charRef.width / 2,
-						y: (largestIndex - (largestIndex - smallestIndex) / 2) * SETTINGS.lineSpacing + SETTINGS.lineSpacing / 4
-					}
-				});
-				builder.tabs.markers.add(options.beatLength);
 				break;
 			case "bend-down":
-				builder.tabs.add({
-					tag: "path",
-					type: type,
-					classes: "draggable",
-					fill: "transparent",
-					stroke: {
-						color: "red",
-						width: 1,
-						path: "m 0 0 q " + SETTINGS.charRef.width + " 0 " + SETTINGS.charRef.width + " " + (SETTINGS.lineSpacing / 2) + " l 2 -1.5"
-					},
-					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charRef.width / 2,
-						y: (largestIndex - (largestIndex - smallestIndex) / 2) * SETTINGS.lineSpacing - SETTINGS.lineSpacing / 4
-					}
-				});
-				builder.tabs.markers.add(options.beatLength);
 				break;
 			case "hammer-on":
-				builder.tabs.add({
-					tag: "text",
-					type: type,
-					classes: "draggable",
-					fill: "blue",
-					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charRef.width / 2,
-						y: (largestIndex - (largestIndex - smallestIndex) / 2) * SETTINGS.lineSpacing
-					},
-					text: "h"
-				});
-				builder.tabs.markers.add(options.beatLength);
 				break;
 			case "pull-off":
-				builder.tabs.add({
-					tag: "text",
-					type: type,
-					classes: "draggable",
-					fill: "blue",
-					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charRef.width / 2,
-						y: (largestIndex - (largestIndex - smallestIndex) / 2) * SETTINGS.lineSpacing
-					},
-					text: "p"
-				});
-				builder.tabs.markers.add(options.beatLength);
 				break;
 			case "finger-tap":
-				builder.tabs.add({
-					tag: "text",
-					type: type,
-					classes: "draggable",
-					fill: "blue",
-					translate: {
-						x: builder.tabs.markers.last() - SETTINGS.charRef.width / 2,
-						y: (largestIndex - (largestIndex - smallestIndex) / 2) * SETTINGS.lineSpacing
-					},
-					text: "t"
-				});
-				builder.tabs.markers.add(options.beatLength);
 				break;
 			default:
 				break;
@@ -294,55 +165,56 @@ function parseTabs(text){
 	}
 }
 
-function update(redraw){
-  // unparse HTML into tab text and insert new tabs into raw tabs element
-  this.querySelector(".raw-tab").value = unparseTabs(this).trim();
-  if(redraw){ this.draw(); }
-}
-
 function draw(){
-  const rawTab = document.querySelector(`.raw-tab[for="${ this.id }"]`);
-  let text = rawTab ? rawTab.value.trim() : "";
-  // if text exists in raw tab, parse text
-  if(text.length > 0){
-    // remove all children within this element
-    this.clear();
-    // insert tabs at beginning of content
-    // this.insertAdjacentHTML("afterbegin", parseTabs(text));
-    this.parseTabs(text);
-  }
+  // remove all children within this element
+  this.clear();
+  // insert tabs inside "this"
+  this.parseTabs();
 }
 
-function initTabContainer(tc){
-  // add helper functions
-  tc.draw = draw;
-  tc.update = update;
-  tc.parseTabs = parseTabs;
-  tc.clear = (s) => {
-    let el = s ? this.querySelector(s) : tc;
-    while(el.firstChild){ el.removeChild(el.firstChild); }
-  };
+function clear(s){
+	// if a selector "s" is provided, clear that element inside of "this"
+	// else clear "this"
+	let el = s ? this.querySelector(s) : this;
+	while(el.firstChild){ el.removeChild(el.firstChild); }
+}
 
-  // remove all children if any
-  tc.clear();
+function initTabContainer(){
+	document.querySelectorAll(".tab-container").forEach((tc, i) => {
+	  // add helper functions
+		tc.clear = clear.bind(tc);
+	  tc.parseTabs = parseTabs.bind(tc);
+		tc.draw = draw.bind(tc);
 
-  const generate = document.querySelector(`.generate[for="${ tc.id }"]`);
-  const rawTab = document.querySelector(`.raw-tab[for="${ tc.id }"]`);
+	  // remove all children if any
+	  tc.clear();
+		tc.parseTabs();
 
-  if(generate){
-    // generate html code when button is clicked
-    generate.addEventListener("click", e => {
-      tc.draw();
-    });
-  }
+	  const generate = document.querySelector(`.generate[for="${ tc.id }"]`);
+	  const rawTab = document.querySelector(`.raw-tab[for="${ tc.id }"]`);
 
-  if(rawTab){
-    // generate html code when enter key is pressed
-    rawTab.addEventListener("keypress", e => {
-      if(e.key.toLowerCase() === "enter"){
-        e.preventDefault();
-        tc.draw();
-      }
-    });
-  }
+	  if(generate){
+	    // generate html code when button is clicked
+	    generate.addEventListener("click", e => {
+	      tc.draw();
+	    });
+	  }
+
+	  if(rawTab && rawTab.tagName === "TEXTAREA"){
+			// generate html code when enter key is pressed
+			rawTab.addEventListener("keypress", e => {
+				if(e.key.toLowerCase() === "enter"){
+					e.preventDefault();
+					tc.draw();
+				}
+			});
+	  }
+	});
+}
+
+// check when DOM is fully loaded
+if(document.readyState === "complete" || (document.readyState !== "loading" && !document.documentElement.doScroll)){
+	initTabContainer();
+} else {
+	document.addEventListener("DOMContentLoaded", initTabContainer);
 }

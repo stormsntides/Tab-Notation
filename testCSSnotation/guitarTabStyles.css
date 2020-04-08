@@ -23,6 +23,14 @@ html, body {
   z-index: -1;
 }
 
+.raw-tab {
+  display: none;
+}
+
+textarea.raw-tab {
+  display: block;
+}
+
 [class$="-string-instrument"]::before {
   content: "";
   position: absolute;
