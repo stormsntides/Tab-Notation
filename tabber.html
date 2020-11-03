@@ -1,37 +1,84 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Starter File</title>
-    <!-- Put this in Head; Materialize CSS, Material Icons, Font Awesome -->
+    <title>Tab Notation</title>
     <meta name="viewport" charset="utf-8" content="width=device-width, initial-scale=1">
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"> -->
     <link rel="stylesheet" href="css/tabStyles.css">
+    <link rel="stylesheet" href="css/floater.css">
   </head>
   <body>
-    <div>This is still a work in progress!</div>
-
-    <div>
-    	<textarea for="tab1"></textarea>
+    <button class="floater-trigger" data-target="help">Help</button>
+    <div id="help" class="floater">
+      <div class="floater-content">
+        <h2>Guidelines</h2>
+        <ul>
+          <li>Tab notations must begin with a tuning description: EBGDAE</li>
+          <li>All note names must be capitalized: E B G D A E</li>
+          <li>Tabs can be written as any number literal: 1 2 7 15 24</li>
+          <li>Strings can be written as "S" followed by a number literal: S1, S5, S8</li>
+          <li>Pound sign (#) refers to sharp notes: A#</li>
+          <li>Lowercase b (b) refers to flat notes: Ab</li>
+          <li>Forward slash (\) is a slide down: 4\1</li>
+          <li>Back slash (/) is a slide up: 4/7</li>
+          <li>Dash (-) is a string range: S5-2 3,5</li>
+          <li>Comma (,) is a chord: S5,4,3 3,5,7</li>
+          <li>Caret (^) is a bend to note: 7^8 3^5</li>
+          <li>Lowercase v (v) is a bend down from note: 12v10 6v5</li>
+          <li>Lowercase h (h) is a hammer-on: 7h8 3h5h7</li>
+          <li>Lowercase p (p) is a pull-off: 7p5 5p3p0</li>
+          <li>Lowercase t (t) is a finger-tap: t15 t17</li>
+          <li>Lowercase m (m) is a palm mutes: m0 m1 m3 m1</li>
+        </ul>
+        <h2>Legend</h2>
+        <ul>
+          <li>A-G = Note</li>
+          <li>S OR s = String</li>
+          <li>0-9 = Tab</li>
+          <li># OR b = Note Modifier</li>
+          <li>/ = Slide Up</li>
+          <li>\ = Slide Down</li>
+          <li>^ = Bend Up</li>
+          <li>v = Bend Down (release)</li>
+          <li>h = Hammer On</li>
+          <li>p = Pull Off</li>
+          <li>t = Finger Tap</li>
+          <li>m = Palm Mute</li>
+          <li>, = Chord Combiner</li>
+          <li>- = Chord Range Combiner</li>
+          <li>: = Time Sig Combiner</li>
+          <li>[ = Open Tab Info</li>
+          <li>] = Close Tab Info</li>
+        </ul>
+        <h2>Copy/Paste Examples</h2>
+        <ul>
+          <li>D#A#F#C#G#D#G# S3 10^11 S4 0 m0 3 4^5 0 m0 0 3 4^5 0 0 m0 S3 8 S4 4 m0 m0</li>
+          <li>EBGDAE s1-3 10,11,12 s4 m14 m12 h m15 p 10 5 6 | 4:4 s5,3,2 m1,3,5 s4 1^2v0 0 0 8/9 s6-4 5 5</li>
+        </ul>
+      </div>
     </div>
 
-    <div class="staff" name="tab1"></div>
-    <!-- <br><br> -->
-    <div class="staff">
-    	D#A#F#C#G#D#G# | F# 10^11 C# 0 (0) 3 4^5 0 (0) 0 | 3 4^5 0 0 (0) F# 8 C# 4 (0 0) |
-    </div>
-    <!-- <br><br> -->
-    <div class="staff">
-    	EBGDAEA | A' 0h1 E' 5^6 A' 0 0 (0 0) | 0h1 E' 5^6 A' 0 0 (0 0) | 0h1 E' 4 A' 1 0 A 1 E' 3 A' 1 |
-    </div>
+    <div class="tn-container"></div>
 
+    <!-- <div class="tn-container" data-tab-id="0">
+      <div id="floater-0" class="floater">
+        <textarea class="raw-tab"></textarea>
+        <button class="close-floater generate">Generate Tabs</button>
+      </div>
+      <img class="floater-trigger mg-bottom click-icon" data-target="floater-0" src="./resources/pencil.svg">
+      <div id="context-floater-0" class="floater">
+
+      </div>
+      <div class="tn-content context-floater-trigger" data-target="context-floater-0"></div>
+    </div> -->
+
+    <script type="text/javascript" src="js/helper.js"></script>
+    <script type="text/javascript" src="js/settings.js"></script>
+    <script type="text/javascript" src="js/tabContainer.js"></script>
     <script type="text/javascript" src="js/tokenizer.js"></script>
     <script type="text/javascript" src="js/parser.js"></script>
-    <script type="text/javascript" src="js/tabInput.js"></script>
-
-    <!-- Put this at bottom of HTML panel; jQuery, Materialize JS -->
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script> -->
+    <script type="text/javascript" src="js/floater.js"></script>
+    <!-- <script type="text/javascript" src="js/context.js"></script> -->
+    <script type="text/javascript" src="js/svg-drag.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
   </body>
 </html>

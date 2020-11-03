@@ -1,0 +1,24 @@
+/* .floater {
+	display: none;
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	/* background-color: rgba(0, 0, 0, 0.5); */
+	/* justify-content: center; */
+/*	overflow: auto;
+} */
+
+.floater {
+	display: none;
+	position: absolute;
+	max-width: 800px;
+	padding: 0 10px;
+	padding-bottom: 10px;
+	background-color: white;
+	border-radius: 2px;
+	border: 1px solid gray;
+	box-shadow: -5px 5px 5px 0 rgba(0, 0, 0, 0.3);
+	overflow: auto;
+}
